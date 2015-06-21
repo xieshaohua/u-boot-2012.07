@@ -268,7 +268,7 @@
                            		"4m(kernel)," \
                            		"-(rootfs)"
 
-#define CONFIG_BOOTARGS			"noinitrd root=/dev/mtdblock3 init=/linuxrc console=ttySAC0,115200"
+#define CONFIG_BOOTARGS			"noinitrd root=/dev/mtdblock3 rootfstype=yaffs2 rw init=/linuxrc console=ttySAC0,115200"
 #define CONFIG_BOOTCOMMAND		"nand read 30008000 kernel;bootm 30008000"
 
 
