@@ -53,30 +53,9 @@
 #include <post.h>
 #include <logbuff.h>
 
-#ifdef CONFIG_BITBANGMII
-#include <miiphy.h>
-#endif
-
-#ifdef CONFIG_DRIVER_SMC91111
-#include "../drivers/net/smc91111.h"
-#endif
-#ifdef CONFIG_DRIVER_LAN91C96
-#include "../drivers/net/lan91c96.h"
-#endif
-
 DECLARE_GLOBAL_DATA_PTR;
 
 ulong monitor_flash_len;
-
-#ifdef CONFIG_HAS_DATAFLASH
-extern int  AT91F_DataflashInit(void);
-extern void dataflash_print_info(void);
-#endif
-
-#if defined(CONFIG_HARD_I2C) || \
-    defined(CONFIG_SOFT_I2C)
-#include <i2c.h>
-#endif
 
 /************************************************************************
  * Coloured LED functionality
@@ -170,25 +149,6 @@ static int display_dram_config(void)
 	return (0);
 }
 
-#if defined(CONFIG_HARD_I2C) || defined(CONFIG_SOFT_I2C)
-static int init_func_i2c(void)
-{
-	puts("I2C:   ");
-	i2c_init(CONFIG_SYS_I2C_SPEED, CONFIG_SYS_I2C_SLAVE);
-	puts("ready\n");
-	return (0);
-}
-#endif
-
-#if defined(CONFIG_CMD_PCI) || defined (CONFIG_PCI)
-#include <pci.h>
-static int arm_pci_init(void)
-{
-	pci_init();
-	return 0;
-}
-#endif /* CONFIG_CMD_PCI || CONFIG_PCI */
-
 /*
  * Breathe some life into the board...
  *
@@ -237,13 +197,7 @@ init_fnc_t *init_sequence[] = {
 #if defined(CONFIG_BOARD_EARLY_INIT_F)
 	board_early_init_f,
 #endif
-#ifdef CONFIG_OF_CONTROL
-	fdtdec_check_fdt,
-#endif
 	timer_init,		/* initialize timer */
-#ifdef CONFIG_FSL_ESDHC
-	get_clocks,
-#endif
 	env_init,		/* initialize environment */
 	init_baudrate,		/* initialze baudrate settings */
 	serial_init,		/* serial communications setup */
@@ -251,12 +205,6 @@ init_fnc_t *init_sequence[] = {
 	display_banner,		/* say that we are here */
 #if defined(CONFIG_DISPLAY_CPUINFO)
 	print_cpuinfo,		/* display cpu info (and speed) */
-#endif
-#if defined(CONFIG_DISPLAY_BOARDINFO)
-	checkboard,		/* display board info */
-#endif
-#if defined(CONFIG_HARD_I2C) || defined(CONFIG_SOFT_I2C)
-	init_func_i2c,
 #endif
 	dram_init,		/* configure available RAM banks */
 	NULL,
@@ -282,13 +230,7 @@ void board_init_f(ulong bootflag)
 	memset((void *)gd, 0, sizeof(gd_t));
 
 	gd->mon_len = _bss_end_ofs;
-#ifdef CONFIG_OF_EMBED
-	/* Get a pointer to the FDT */
-	gd->fdt_blob = _binary_dt_dtb_start;
-#elif defined CONFIG_OF_SEPARATE
-	/* FDT is at end of image */
-	gd->fdt_blob = (void *)(_end_ofs + _TEXT_BASE);
-#endif
+
 	/* Allow the early environment to override the fdt address */
 	gd->fdt_blob = (void *)getenv_ulong("fdtcontroladdr", 16,
 						(uintptr_t)gd->fdt_blob);
@@ -299,52 +241,13 @@ void board_init_f(ulong bootflag)
 		}
 	}
 
-#ifdef CONFIG_OF_CONTROL
-	/* For now, put this check after the console is ready */
-	if (fdtdec_prepare_fdt()) {
-		panic("** CONFIG_OF_CONTROL defined but no FDT - please see "
-			"doc/README.fdt-control");
-	}
-#endif
-
 	debug("monitor len: %08lX\n", gd->mon_len);
 	/*
 	 * Ram is setup, size stored in gd !!
 	 */
 	debug("ramsize: %08lX\n", gd->ram_size);
-#if defined(CONFIG_SYS_MEM_TOP_HIDE)
-	/*
-	 * Subtract specified amount of memory to hide so that it won't
-	 * get "touched" at all by U-Boot. By fixing up gd->ram_size
-	 * the Linux kernel should now get passed the now "corrected"
-	 * memory size and won't touch it either. This should work
-	 * for arch/ppc and arch/powerpc. Only Linux board ports in
-	 * arch/powerpc with bootwrapper support, that recalculate the
-	 * memory size from the SDRAM controller setup will have to
-	 * get fixed.
-	 */
-	gd->ram_size -= CONFIG_SYS_MEM_TOP_HIDE;
-#endif
 
 	addr = CONFIG_SYS_SDRAM_BASE + gd->ram_size;
-
-#ifdef CONFIG_LOGBUFFER
-#ifndef CONFIG_ALT_LB_ADDR
-	/* reserve kernel log buffer */
-	addr -= (LOGBUFF_RESERVE);
-	debug("Reserving %dk for kernel logbuffer at %08lx\n", LOGBUFF_LEN,
-		addr);
-#endif
-#endif
-
-#ifdef CONFIG_PRAM
-	/*
-	 * reserve protected RAM
-	 */
-	reg = getenv_ulong("pram", 10, CONFIG_PRAM);
-	addr -= (reg << 10);		/* size is in kB */
-	debug("Reserving %ldk for protected RAM at %08lx\n", reg, addr);
-#endif /* CONFIG_PRAM */
 
 #if !(defined(CONFIG_SYS_ICACHE_OFF) && defined(CONFIG_SYS_DCACHE_OFF))
 	/* reserve TLB table */
@@ -360,16 +263,6 @@ void board_init_f(ulong bootflag)
 	/* round down to next 4 kB limit */
 	addr &= ~(4096 - 1);
 	debug("Top of RAM usable for U-Boot at: %08lx\n", addr);
-
-#ifdef CONFIG_LCD
-#ifdef CONFIG_FB_ADDR
-	gd->fb_base = CONFIG_FB_ADDR;
-#else
-	/* reserve memory for LCD display (always full pages) */
-	addr = lcd_setmem(addr);
-	gd->fb_base = addr;
-#endif /* CONFIG_FB_ADDR */
-#endif /* CONFIG_LCD */
 
 	/*
 	 * reserve memory for U-Boot code, data & bss
@@ -419,11 +312,6 @@ void board_init_f(ulong bootflag)
 	addr_sp &= ~0x07;
 
 	debug("New Stack Pointer is: %08lx\n", addr_sp);
-
-#ifdef CONFIG_POST
-	post_bootmode_init();
-	post_run(NULL, POST_ROM | post_bootmode_get(0));
-#endif
 
 	gd->bd->bi_baudrate = gd->baudrate;
 	/* Ram ist board specific, so move it to board code ... */

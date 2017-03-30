@@ -300,7 +300,6 @@ extern char console_buffer[];
 /* arch/$(ARCH)/lib/board.c */
 void	board_init_f  (ulong) __attribute__ ((noreturn));
 void	board_init_r  (gd_t *, ulong) __attribute__ ((noreturn));
-int	checkboard    (void);
 int	checkflash    (void);
 int	checkdram     (void);
 int	last_stage_init(void);

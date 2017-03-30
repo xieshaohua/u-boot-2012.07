@@ -240,42 +240,14 @@ LIBS += fs/cramfs/libcramfs.o fs/fat/libfat.o fs/fdos/libfdos.o fs/jffs2/libjffs
 	fs/ubifs/libubifs.o
 LIBS += net/libnet.o
 LIBS += disk/libdisk.o
-LIBS += drivers/bios_emulator/libatibiosemu.o
-LIBS += drivers/block/libblock.o
-LIBS += drivers/dma/libdma.o
-LIBS += drivers/fpga/libfpga.o
-LIBS += drivers/gpio/libgpio.o
-LIBS += drivers/hwmon/libhwmon.o
-LIBS += drivers/i2c/libi2c.o
-LIBS += drivers/input/libinput.o
-LIBS += drivers/misc/libmisc.o
-LIBS += drivers/mmc/libmmc.o
 LIBS += drivers/mtd/libmtd.o
 LIBS += drivers/mtd/nand/libnand.o
 LIBS += drivers/mtd/ubi/libubi.o
 LIBS += drivers/net/libnet.o
 LIBS += drivers/net/phy/libphy.o
-LIBS += drivers/pci/libpci.o
-LIBS += drivers/pcmcia/libpcmcia.o
-LIBS += drivers/power/libpower.o
-LIBS += drivers/spi/libspi.o
 LIBS += drivers/rtc/librtc.o
 LIBS += drivers/serial/libserial.o
-ifeq ($(CONFIG_GENERIC_LPC_TPM),y)
-LIBS += drivers/tpm/libtpm.o
-endif
-LIBS += drivers/twserial/libtws.o
-LIBS += drivers/usb/eth/libusb_eth.o
-LIBS += drivers/usb/gadget/libusb_gadget.o
-LIBS += drivers/usb/host/libusb_host.o
-LIBS += drivers/usb/musb/libusb_musb.o
-LIBS += drivers/usb/phy/libusb_phy.o
-LIBS += drivers/usb/ulpi/libusb_ulpi.o
-LIBS += drivers/video/libvideo.o
-LIBS += drivers/watchdog/libwatchdog.o
 LIBS += common/libcommon.o
-LIBS += lib/libfdt/libfdt.o
-LIBS += api/libapi.o
 
 LIBS := $(addprefix $(obj),$(sort $(LIBS)))
 .PHONY : $(LIBS)
