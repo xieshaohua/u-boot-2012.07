@@ -26,15 +26,6 @@
 
 #include <config.h>
 
-/*
- * All boards using a given driver must convert to self-init
- * at the same time, so do it here.  When all drivers are
- * converted, this will go away.
- */
-#if defined(CONFIG_NAND_FSL_ELBC)
-#define CONFIG_SYS_NAND_SELF_INIT
-#endif
-
 extern void nand_init(void);
 
 #include <linux/compat.h>

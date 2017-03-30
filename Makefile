@@ -212,16 +212,6 @@ endif
 # U-Boot objects....order is important (i.e. start must be first)
 
 OBJS  = $(CPUDIR)/start.o
-ifeq ($(CPU),x86)
-OBJS += $(CPUDIR)/start16.o
-OBJS += $(CPUDIR)/resetvec.o
-endif
-ifeq ($(CPU),ppc4xx)
-OBJS += $(CPUDIR)/resetvec.o
-endif
-ifeq ($(CPU),mpc85xx)
-OBJS += $(CPUDIR)/resetvec.o
-endif
 
 OBJS := $(addprefix $(obj),$(OBJS))
 
@@ -262,30 +252,13 @@ LIBS += drivers/misc/libmisc.o
 LIBS += drivers/mmc/libmmc.o
 LIBS += drivers/mtd/libmtd.o
 LIBS += drivers/mtd/nand/libnand.o
-LIBS += drivers/mtd/onenand/libonenand.o
 LIBS += drivers/mtd/ubi/libubi.o
-LIBS += drivers/mtd/spi/libspi_flash.o
 LIBS += drivers/net/libnet.o
 LIBS += drivers/net/phy/libphy.o
 LIBS += drivers/pci/libpci.o
 LIBS += drivers/pcmcia/libpcmcia.o
 LIBS += drivers/power/libpower.o
 LIBS += drivers/spi/libspi.o
-ifeq ($(CPU),mpc83xx)
-LIBS += drivers/qe/libqe.o
-LIBS += arch/powerpc/cpu/mpc8xxx/ddr/libddr.o
-LIBS += arch/powerpc/cpu/mpc8xxx/lib8xxx.o
-endif
-ifeq ($(CPU),mpc85xx)
-LIBS += drivers/qe/libqe.o
-LIBS += drivers/net/fm/libfm.o
-LIBS += arch/powerpc/cpu/mpc8xxx/ddr/libddr.o
-LIBS += arch/powerpc/cpu/mpc8xxx/lib8xxx.o
-endif
-ifeq ($(CPU),mpc86xx)
-LIBS += arch/powerpc/cpu/mpc8xxx/ddr/libddr.o
-LIBS += arch/powerpc/cpu/mpc8xxx/lib8xxx.o
-endif
 LIBS += drivers/rtc/librtc.o
 LIBS += drivers/serial/libserial.o
 ifeq ($(CONFIG_GENERIC_LPC_TPM),y)
@@ -303,25 +276,6 @@ LIBS += drivers/watchdog/libwatchdog.o
 LIBS += common/libcommon.o
 LIBS += lib/libfdt/libfdt.o
 LIBS += api/libapi.o
-LIBS += post/libpost.o
-
-ifneq ($(CONFIG_AM33XX)$(CONFIG_OMAP34XX)$(CONFIG_OMAP44XX)$(CONFIG_OMAP54XX),)
-LIBS += $(CPUDIR)/omap-common/libomap-common.o
-endif
-
-ifeq ($(SOC),mx5)
-LIBS += $(CPUDIR)/imx-common/libimx-common.o
-endif
-ifeq ($(SOC),mx6)
-LIBS += $(CPUDIR)/imx-common/libimx-common.o
-endif
-
-ifeq ($(SOC),s5pc1xx)
-LIBS += $(CPUDIR)/s5p-common/libs5p-common.o
-endif
-ifeq ($(SOC),exynos)
-LIBS += $(CPUDIR)/s5p-common/libs5p-common.o
-endif
 
 LIBS := $(addprefix $(obj),$(sort $(LIBS)))
 .PHONY : $(LIBS)

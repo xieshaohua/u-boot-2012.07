@@ -32,6 +32,6 @@
 
 void board_init_f(unsigned long bootflag)
 {
-	relocate_code(CONFIG_SYS_NAND_U_BOOT_DST - CONFIG_STACKSIZE, NULL,
+	relocate_code(CONFIG_SYS_NAND_U_BOOT_DST, NULL,
 			CONFIG_SYS_TEXT_BASE);
 }

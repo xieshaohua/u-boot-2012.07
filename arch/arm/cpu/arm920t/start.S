@@ -175,7 +175,6 @@ copy_loop:
 	cmp	r0, r2			/* until source end address [r2]    */
 	blo	copy_loop
 
-#ifndef CONFIG_SPL_BUILD
 	/*
 	 * fix .rel.dyn relocations
 	 */
@@ -214,10 +213,8 @@ fixnext:
 	add	r2, r2, #8		/* each rel.dyn entry is 8 bytes */
 	cmp	r2, r3
 	blo	fixloop
-#endif
 
 clear_bss:
-#ifndef CONFIG_SPL_BUILD
 	ldr	r0, _bss_start_ofs
 	ldr	r1, _bss_end_ofs
 	mov	r4, r6			/* reloc addr */
@@ -234,8 +231,6 @@ clbss_e:
 #ifndef CONFIG_NAND_SPL
 	bl coloured_LED_init
 	bl red_led_on
-#endif
-	//bl	led2_on
 #endif
 
 /*

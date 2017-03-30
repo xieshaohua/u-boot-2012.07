@@ -380,7 +380,6 @@ void board_init_f(ulong bootflag)
 
 	debug("Reserving %ldk for U-Boot at: %08lx\n", gd->mon_len >> 10, addr);
 
-#ifndef CONFIG_SPL_BUILD
 	/*
 	 * reserve memory for malloc() arena
 	 */
@@ -418,10 +417,6 @@ void board_init_f(ulong bootflag)
 
 	/* 8-byte alignment for ABI compliance */
 	addr_sp &= ~0x07;
-#else
-	addr_sp += 128;	/* leave 32 words for abort-stack   */
-	gd->irq_sp = addr_sp;
-#endif
 
 	debug("New Stack Pointer is: %08lx\n", addr_sp);
 

@@ -44,18 +44,6 @@ typedef	struct	global_data {
 	unsigned long	env_addr;	/* Address  of Environment struct */
 	unsigned long	env_valid;	/* Checksum of Environment valid? */
 	unsigned long	fb_base;	/* base address of frame buffer */
-#ifdef CONFIG_FSL_ESDHC
-	unsigned long	sdhc_clk;
-#endif
-#ifdef CONFIG_AT91FAMILY
-	/* "static data" needed by at91's clock.c */
-	unsigned long	cpu_clk_rate_hz;
-	unsigned long	main_clk_rate_hz;
-	unsigned long	mck_rate_hz;
-	unsigned long	plla_rate_hz;
-	unsigned long	pllb_rate_hz;
-	unsigned long	at91_pllb_usb_init;
-#endif
 #ifdef CONFIG_ARM
 	/* "static data" needed by most of timer.c on ARM platforms */
 	unsigned long	timer_rate_hz;
@@ -63,9 +51,6 @@ typedef	struct	global_data {
 	unsigned long	tbu;
 	unsigned long long	timer_reset_value;
 	unsigned long	lastinc;
-#endif
-#ifdef CONFIG_IXP425
-	unsigned long	timestamp;
 #endif
 	unsigned long	relocaddr;	/* Start address of U-Boot in RAM */
 	phys_size_t	ram_size;	/* RAM size */
@@ -79,11 +64,6 @@ typedef	struct	global_data {
 	const void	*fdt_blob;	/* Our device tree, NULL if none */
 	void		**jt;		/* jump table */
 	char		env_buf[32];	/* buffer for getenv() before reloc. */
-#if defined(CONFIG_POST) || defined(CONFIG_LOGBUFFER)
-	unsigned long	post_log_word; /* Record POST activities */
-	unsigned long	post_log_res; /* success of POST test */
-	unsigned long	post_init_f_time; /* When post_init_f started */
-#endif
 } gd_t;
 
 /*
