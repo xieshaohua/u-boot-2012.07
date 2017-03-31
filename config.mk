@@ -31,23 +31,13 @@ endif
 
 ifneq ($(OBJTREE),$(SRCTREE))
 # Create object files for SPL in a separate directory
-ifeq ($(CONFIG_SPL_BUILD),y)
-obj := $(if $(dir),$(SPLTREE)/$(dir)/,$(SPLTREE)/)
-else
 obj := $(if $(dir),$(OBJTREE)/$(dir)/,$(OBJTREE)/)
-endif
 src := $(if $(dir),$(SRCTREE)/$(dir)/,$(SRCTREE)/)
 
 $(shell mkdir -p $(obj))
 else
 # Create object files for SPL in a separate directory
-ifeq ($(CONFIG_SPL_BUILD),y)
-obj := $(if $(dir),$(SPLTREE)/$(dir)/,$(SPLTREE)/)
-
-$(shell mkdir -p $(obj))
-else
 obj :=
-endif
 src :=
 endif
 

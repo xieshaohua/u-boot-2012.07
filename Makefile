@@ -56,59 +56,11 @@ export	HOSTARCH HOSTOS SHELL
 # Deal with colliding definitions from tcsh etc.
 VENDOR=
 
-#########################################################################
-# Allow for silent builds
-ifeq (,$(findstring s,$(MAKEFLAGS)))
-XECHO = echo
-else
-XECHO = :
-endif
-
-#########################################################################
-#
-# U-boot build supports producing a object files to the separate external
-# directory. Two use cases are supported:
-#
-# 1) Add O= to the make command line
-# 'make O=/tmp/build all'
-#
-# 2) Set environement variable BUILD_DIR to point to the desired location
-# 'export BUILD_DIR=/tmp/build'
-# 'make'
-#
-# The second approach can also be used with a MAKEALL script
-# 'export BUILD_DIR=/tmp/build'
-# './MAKEALL'
-#
-# Command line 'O=' setting overrides BUILD_DIR environent variable.
-#
-# When none of the above methods is used the local build is performed and
-# the object files are placed in the source directory.
-#
-
-ifdef O
-ifeq ("$(origin O)", "command line")
-BUILD_DIR := $(O)
-endif
-endif
-
-ifneq ($(BUILD_DIR),)
-saved-output := $(BUILD_DIR)
-
-# Attempt to create a output directory.
-$(shell [ -d ${BUILD_DIR} ] || mkdir -p ${BUILD_DIR})
-
-# Verify if it was successful.
-BUILD_DIR := $(shell cd $(BUILD_DIR) && /bin/pwd)
-$(if $(BUILD_DIR),,$(error output directory "$(saved-output)" does not exist))
-endif # ifneq ($(BUILD_DIR),)
-
-OBJTREE		:= $(if $(BUILD_DIR),$(BUILD_DIR),$(CURDIR))
-SPLTREE		:= $(OBJTREE)/spl
+OBJTREE		:= $(CURDIR)
 SRCTREE		:= $(CURDIR)
 TOPDIR		:= $(SRCTREE)
 LNDIR		:= $(OBJTREE)
-export	TOPDIR SRCTREE OBJTREE SPLTREE
+export	TOPDIR SRCTREE OBJTREE
 
 MKCONFIG	:= $(SRCTREE)/mkconfig
 export MKCONFIG
@@ -140,7 +92,6 @@ unexport CDPATH
 # The "examples" conditionally depend on U-Boot (say, when USE_PRIVATE_LIBGCC
 # is "yes"), so compile examples after U-Boot is compiled.
 SUBDIR_TOOLS = tools
-SUBDIR_EXAMPLES = examples/standalone examples/api
 SUBDIRS = $(SUBDIR_TOOLS)
 
 .PHONY : $(SUBDIRS) $(VERSION_FILE) $(TIMESTAMP_FILE)
@@ -153,10 +104,6 @@ ifeq ($(obj)include/config.mk,$(wildcard $(obj)include/config.mk))
 all:
 sinclude $(obj)include/autoconf.mk.dep
 sinclude $(obj)include/autoconf.mk
-
-ifndef CONFIG_SANDBOX
-SUBDIRS += $(SUBDIR_EXAMPLES)
-endif
 
 # load ARCH, BOARD, and CPU configuration
 include $(obj)include/config.mk
@@ -227,12 +174,6 @@ LIBS += $(shell if [ -f board/$(VENDOR)/common/Makefile ]; then echo \
 LIBS += $(CPUDIR)/lib$(CPU).o
 ifdef SOC
 LIBS += $(CPUDIR)/$(SOC)/lib$(SOC).o
-endif
-ifeq ($(CPU),ixp)
-LIBS += arch/arm/cpu/ixp/npe/libnpe.o
-endif
-ifeq ($(CONFIG_OF_EMBED),y)
-LIBS += dts/libdts.o
 endif
 LIBS += arch/$(ARCH)/lib/lib$(ARCH).o
 LIBS += fs/cramfs/libcramfs.o fs/fat/libfat.o fs/fdos/libfdos.o fs/jffs2/libjffs2.o \
@@ -307,7 +248,7 @@ ONENAND_BIN ?= $(obj)onenand_ipl/onenand-ipl-2k.bin
 ALL-$(CONFIG_SPL) += $(obj)spl/u-boot-spl.bin
 ALL-$(CONFIG_OF_SEPARATE) += $(obj)u-boot.dtb $(obj)u-boot-dtb.bin
 
-all:		$(ALL-y) $(SUBDIR_EXAMPLES)
+all:		$(ALL-y)
 
 $(obj)u-boot.dtb:	$(obj)u-boot
 		$(MAKE) -C dts binary
@@ -435,8 +376,6 @@ $(LIBBOARD):	depend $(LIBS)
 $(SUBDIRS):	depend
 		$(MAKE) -C $@ all
 
-$(SUBDIR_EXAMPLES): $(obj)u-boot
-
 $(LDSCRIPT):	depend
 		$(MAKE) -C $(dir $@) $(notdir $@)
 
@@ -515,14 +454,14 @@ checkthumb:
 # the dep file is only include in this top level makefile to determine when
 # to regenerate the autoconf.mk file.
 $(obj)include/autoconf.mk.dep: $(obj)include/config.h include/common.h
-	@$(XECHO) Generating $@ ; \
+	@echo Generating $@ ; \
 	set -e ; \
 	: Generate the dependancies ; \
 	$(CC) -x c -DDO_DEPS_ONLY -M $(CFLAGS) $(CPPFLAGS) \
 		-MQ $(obj)include/autoconf.mk include/common.h > $@
 
 $(obj)include/autoconf.mk: $(obj)include/config.h
-	@$(XECHO) Generating $@ ; \
+	@echo Generating $@ ; \
 	set -e ; \
 	: Extract the config macros ; \
 	$(CPP) $(CFLAGS) -DDO_DEPS_ONLY -dM include/common.h | \
@@ -531,7 +470,7 @@ $(obj)include/autoconf.mk: $(obj)include/config.h
 
 $(obj)include/generated/generic-asm-offsets.h:	$(obj)include/autoconf.mk.dep \
 	$(obj)lib/asm-offsets.s
-	@$(XECHO) Generating $@
+	@echo Generating $@
 	tools/scripts/make-asm-offsets $(obj)lib/asm-offsets.s $@
 
 $(obj)lib/asm-offsets.s:	$(obj)include/autoconf.mk.dep \
@@ -543,7 +482,7 @@ $(obj)lib/asm-offsets.s:	$(obj)include/autoconf.mk.dep \
 
 $(obj)include/generated/asm-offsets.h:	$(obj)include/autoconf.mk.dep \
 	$(obj)$(CPUDIR)/$(SOC)/asm-offsets.s
-	@$(XECHO) Generating $@
+	@echo Generating $@
 	tools/scripts/make-asm-offsets $(obj)$(CPUDIR)/$(SOC)/asm-offsets.s $@
 
 $(obj)$(CPUDIR)/$(SOC)/asm-offsets.s:	$(obj)include/autoconf.mk.dep
