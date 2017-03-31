@@ -69,10 +69,10 @@
 /************************************************************
  * USB support (currently only works with D-cache off)
  ************************************************************/
-#define CONFIG_USB_OHCI
-#define CONFIG_USB_KEYBOARD
-#define CONFIG_USB_STORAGE
-#define CONFIG_DOS_PARTITION
+//#define CONFIG_USB_OHCI
+//#define CONFIG_USB_KEYBOARD
+//#define CONFIG_USB_STORAGE
+//#define CONFIG_DOS_PARTITION
 
 /************************************************************
  * RTC
@@ -103,7 +103,6 @@
 #define CONFIG_CMD_NAND
 #define CONFIG_CMD_PING
 #define CONFIG_CMD_REGINFO
-#define CONFIG_CMD_USB
 
 #define CONFIG_SYS_HUSH_PARSER
 #define CONFIG_CMDLINE_EDITING

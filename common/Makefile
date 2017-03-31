@@ -26,7 +26,6 @@ include $(TOPDIR)/config.mk
 LIB	= $(obj)libcommon.o
 
 # core
-ifndef CONFIG_SPL_BUILD
 COBJS-y += main.o
 COBJS-y += command.o
 COBJS-y += exports.o
@@ -73,12 +72,6 @@ COBJS-$(CONFIG_CMD_CONSOLE) += cmd_console.o
 COBJS-$(CONFIG_CMD_CPLBINFO) += cmd_cplbinfo.o
 COBJS-$(CONFIG_DATAFLASH_MMC_SELECT) += cmd_dataflash_mmc_mux.o
 COBJS-$(CONFIG_CMD_DATE) += cmd_date.o
-ifdef CONFIG_4xx
-COBJS-$(CONFIG_CMD_SETGETDCR) += cmd_dcr.o
-endif
-ifdef CONFIG_POST
-COBJS-$(CONFIG_CMD_DIAG) += cmd_diag.o
-endif
 COBJS-$(CONFIG_CMD_DISPLAY) += cmd_display.o
 COBJS-$(CONFIG_CMD_DTT) += cmd_dtt.o
 COBJS-$(CONFIG_CMD_ECHO) += cmd_echo.o
@@ -93,9 +86,6 @@ COBJS-$(CONFIG_OF_LIBFDT) += cmd_fdt.o fdt_support.o
 COBJS-$(CONFIG_CMD_FDOS) += cmd_fdos.o
 COBJS-$(CONFIG_CMD_FITUPD) += cmd_fitupd.o
 COBJS-$(CONFIG_CMD_FLASH) += cmd_flash.o
-ifdef CONFIG_FPGA
-COBJS-$(CONFIG_CMD_FPGA) += cmd_fpga.o
-endif
 COBJS-$(CONFIG_CMD_GPIO) += cmd_gpio.o
 COBJS-$(CONFIG_CMD_I2C) += cmd_i2c.o
 COBJS-$(CONFIG_CMD_IDE) += cmd_ide.o
@@ -117,9 +107,6 @@ COBJS-$(CONFIG_MII) += miiphyutil.o
 COBJS-$(CONFIG_CMD_MII) += miiphyutil.o
 COBJS-$(CONFIG_PHYLIB) += miiphyutil.o
 COBJS-$(CONFIG_CMD_MII) += cmd_mii.o
-ifdef CONFIG_PHYLIB
-COBJS-$(CONFIG_CMD_MII) += cmd_mdio.o
-endif
 COBJS-$(CONFIG_CMD_MISC) += cmd_misc.o
 COBJS-$(CONFIG_CMD_MMC) += cmd_mmc.o
 COBJS-$(CONFIG_CMD_MMC_SPI) += cmd_mmc_spi.o
@@ -129,9 +116,6 @@ COBJS-$(CONFIG_CMD_NAND) += cmd_nand.o
 COBJS-$(CONFIG_CMD_NET) += cmd_net.o
 COBJS-$(CONFIG_CMD_ONENAND) += cmd_onenand.o
 COBJS-$(CONFIG_CMD_OTP) += cmd_otp.o
-ifdef CONFIG_PCI
-COBJS-$(CONFIG_CMD_PCI) += cmd_pci.o
-endif
 COBJS-y += cmd_pcmcia.o
 COBJS-$(CONFIG_CMD_PORTIO) += cmd_portio.o
 COBJS-$(CONFIG_CMD_PXE) += cmd_pxe.o
@@ -154,23 +138,11 @@ COBJS-$(CONFIG_CMD_UBI) += cmd_ubi.o
 COBJS-$(CONFIG_CMD_UBIFS) += cmd_ubifs.o
 COBJS-$(CONFIG_CMD_UNIVERSE) += cmd_universe.o
 COBJS-$(CONFIG_CMD_UNZIP) += cmd_unzip.o
-ifdef CONFIG_CMD_USB
-COBJS-y += cmd_usb.o
-COBJS-y += usb.o usb_hub.o
-COBJS-$(CONFIG_USB_STORAGE) += usb_storage.o
-COBJS-$(CONFIG_S3C_USBD) += cmd_usbd.o
-endif
 COBJS-$(CONFIG_CMD_XIMG) += cmd_ximg.o
 COBJS-$(CONFIG_YAFFS2) += cmd_yaffs2.o
 COBJS-$(CONFIG_CMD_SPL) += cmd_spl.o
 
 # others
-ifdef CONFIG_DDR_SPD
-SPD := y
-endif
-ifdef CONFIG_SPD_EEPROM
-SPD := y
-endif
 COBJS-$(SPD) += ddr_spd.o
 COBJS-$(CONFIG_HWCONFIG) += hwconfig.o
 COBJS-$(CONFIG_BOOTSTAGE) += bootstage.o
@@ -184,11 +156,7 @@ COBJS-$(CONFIG_MENU) += menu.o
 COBJS-$(CONFIG_MODEM_SUPPORT) += modem.o
 COBJS-$(CONFIG_UPDATE_TFTP) += update.o
 COBJS-$(CONFIG_USB_KEYBOARD) += usb_kbd.o
-endif
 
-ifdef CONFIG_SPL_BUILD
-COBJS-$(CONFIG_SPL_YMODEM_SUPPORT) += xyzModem.o
-endif
 COBJS-y += console.o
 COBJS-y += dlmalloc.o
 COBJS-y += image.o

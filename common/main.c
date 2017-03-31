@@ -39,7 +39,6 @@
 #include <hush.h>
 #endif
 
-#include <post.h>
 #include <linux/ctype.h>
 #include <menu.h>
 

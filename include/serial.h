@@ -1,7 +1,7 @@
 #ifndef __SERIAL_H__
 #define __SERIAL_H__
 
-#include <post.h>
+//#include <post.h>
 
 struct serial_device {
 	/* enough bytes to match alignment of following func pointer */
