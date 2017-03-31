@@ -85,7 +85,6 @@ SUBDIRS = $(SUBDIR_TOOLS)
 .PHONY : $(SUBDIRS) $(VERSION_FILE) $(TIMESTAMP_FILE)
 
 ifeq ($(obj)include/config.mk,$(wildcard $(obj)include/config.mk))
-$(info "++++++++++++++++++++++++++++++++++++++++++")
 
 # Include autoconf.mk before config.mk so that the config options are available
 # to all top level build files.  We need the dummy all: target to prevent the
@@ -131,7 +130,7 @@ LIBS += drivers/mtd/libmtd.o
 LIBS += drivers/mtd/nand/libnand.o
 LIBS += drivers/mtd/ubi/libubi.o
 LIBS += drivers/net/libnet.o
-LIBS += drivers/net/phy/libphy.o
+#LIBS += drivers/net/phy/libphy.o
 LIBS += drivers/rtc/librtc.o
 LIBS += drivers/serial/libserial.o
 LIBS += common/libcommon.o
@@ -182,13 +181,6 @@ GEN_UBOOT = \
 $(obj)u-boot:	depend \
 		$(SUBDIR_TOOLS) $(OBJS) $(LIBBOARD) $(LIBS) $(LDSCRIPT) $(obj)u-boot.lds
 		$(GEN_UBOOT)
-ifeq ($(CONFIG_KALLSYMS),y)
-		smap=`$(call SYSTEM_MAP,u-boot) | \
-			awk '$$2 ~ /[tTwW]/ {printf $$1 $$3 "\\\\000"}'` ; \
-		$(CC) $(CFLAGS) -DSYSTEM_MAP="\"$${smap}\"" \
-			-c common/system_map.c -o $(obj)common/system_map.o
-		$(GEN_UBOOT) $(obj)common/system_map.o
-endif
 
 $(OBJS):	depend
 		$(MAKE) -C $(CPUDIR) $(notdir $@)
@@ -214,15 +206,6 @@ nand_spl:	$(TIMESTAMP_FILE) $(VERSION_FILE) depend
 $(obj)u-boot-nand.bin:	nand_spl $(obj)u-boot.bin
 		cat $(obj)nand_spl/u-boot-spl-16k.bin $(obj)u-boot.bin > $(obj)u-boot-nand.bin
 
-onenand_ipl:	$(TIMESTAMP_FILE) $(VERSION_FILE) $(obj)include/autoconf.mk
-		$(MAKE) -C onenand_ipl/board/$(BOARDDIR) all
-
-$(obj)u-boot-onenand.bin:	onenand_ipl $(obj)u-boot.bin
-		cat $(ONENAND_BIN) $(obj)u-boot.bin > $(obj)u-boot-onenand.bin
-
-$(obj)spl/u-boot-spl.bin:	$(SUBDIR_TOOLS) depend
-		$(MAKE) -C spl all
-
 updater:
 		$(MAKE) -C tools/updater all
 
@@ -239,26 +222,6 @@ TAG_SUBDIRS = $(SUBDIRS)
 TAG_SUBDIRS += $(dir $(__LIBS))
 TAG_SUBDIRS += include
 
-FIND := find
-FINDFLAGS := -L
-
-checkstack:
-		$(CROSS_COMPILE)objdump -d $(obj)u-boot \
-			`$(FIND) $(obj) -name u-boot-spl -print` | \
-			perl $(src)tools/checkstack.pl $(ARCH)
-
-tags ctags:
-		ctags -w -o $(obj)ctags `$(FIND) $(FINDFLAGS) $(TAG_SUBDIRS) \
-						-name '*.[chS]' -print`
-
-etags:
-		etags -a -o $(obj)etags `$(FIND) $(FINDFLAGS) $(TAG_SUBDIRS) \
-						-name '*.[chS]' -print`
-cscope:
-		$(FIND) $(FINDFLAGS) $(TAG_SUBDIRS) -name '*.[chS]' -print > \
-						cscope.files
-		cscope -b -q -k
-
 SYSTEM_MAP = \
 		$(NM) $1 | \
 		grep -v '\(compiled\)\|\(\.o$$\)\|\( [aUw] \)\|\(\.\.ng$$\)\|\(LASH[RL]DI\)' | \
@@ -266,13 +229,6 @@ SYSTEM_MAP = \
 $(obj)System.map:	$(obj)u-boot
 		@$(call SYSTEM_MAP,$<) > $(obj)System.map
 
-checkthumb:
-	@if test $(call cc-version) -lt 0404; then \
-		echo -n '*** Your GCC does not produce working '; \
-		echo 'binaries in THUMB mode.'; \
-		echo '*** Your board is configured for THUMB mode.'; \
-		false; \
-	fi
 #
 # Auto-generate the autoconf.mk file (which is included by all makefiles)
 #
@@ -323,7 +279,7 @@ $(obj)$(CPUDIR)/$(SOC)/asm-offsets.s:	$(obj)include/autoconf.mk.dep
 
 #########################################################################
 else	# !config.mk
-all $(obj)u-boot.bin $(obj)u-boot.dis $(obj)u-boot \
+all $(obj)u-boot.bin $(obj)u-boot \
 $(filter-out tools,$(SUBDIRS)) \
 updater depend dep tags ctags etags cscope $(obj)System.map:
 	@echo "System not configured - see README" >&2
@@ -391,17 +347,6 @@ ucname	= $(shell echo $(1) | sed -e 's/\(.*\)_config/\U\1/')
 #########################################################################
 
 clean:
-	@rm -f $(obj)examples/standalone/82559_eeprom			  \
-	       $(obj)examples/standalone/atmel_df_pow2			  \
-	       $(obj)examples/standalone/eepro100_eeprom		  \
-	       $(obj)examples/standalone/hello_world			  \
-	       $(obj)examples/standalone/interrupt			  \
-	       $(obj)examples/standalone/mem_to_mem_idma2intr		  \
-	       $(obj)examples/standalone/sched				  \
-	       $(obj)examples/standalone/smc911{11,x}_eeprom		  \
-	       $(obj)examples/standalone/test_burst			  \
-	       $(obj)examples/standalone/timer
-	@rm -f $(obj)examples/api/demo{,.bin}
 	@rm -f $(obj)tools/bmp_logo	   $(obj)tools/easylogo/easylogo  \
 	       $(obj)tools/env/{fw_printenv,fw_setenv}			  \
 	       $(obj)tools/envcrc					  \
@@ -443,20 +388,10 @@ clobber:	tidy
 	@rm -f $(OBJS) $(obj)*.bak $(obj)ctags $(obj)etags $(obj)TAGS \
 		$(obj)cscope.* $(obj)*.*~
 	@rm -f $(obj)u-boot $(obj)u-boot.map $(obj)u-boot.hex $(ALL-y)
-	@rm -f $(obj)u-boot.kwb
-	@rm -f $(obj)u-boot.imx
-	@rm -f $(obj)u-boot.ubl
-	@rm -f $(obj)u-boot.ais
-	@rm -f $(obj)u-boot.dtb
-	@rm -f $(obj)u-boot.sb
-	@rm -f $(obj)u-boot.spr
 	@rm -f $(obj)tools/xway-swap-bytes
-	@rm -f $(obj)arch/powerpc/cpu/mpc824x/bedbug_603e.c
-	@rm -f $(obj)arch/powerpc/cpu/mpc83xx/ddr-gen?.c
 	@rm -fr $(obj)include/asm/proc $(obj)include/asm/arch $(obj)include/asm
 	@rm -fr $(obj)include/generated
 	@[ ! -d $(obj)nand_spl ] || find $(obj)nand_spl -name "*" -type l -print | xargs rm -f
-	@[ ! -d $(obj)onenand_ipl ] || find $(obj)onenand_ipl -name "*" -type l -print | xargs rm -f
 	@rm -f $(obj)dts/*.tmp
 
 mrproper \
