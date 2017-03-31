@@ -64,26 +64,7 @@ HOSTSTRIP	= strip
 # multiple symbol definitions are treated as errors, hence the
 # -multiply_defined suppress option to turn off this error.
 #
-
-ifeq ($(HOSTOS),darwin)
-# get major and minor product version (e.g. '10' and '6' for Snow Leopard)
-DARWIN_MAJOR_VERSION	= $(shell sw_vers -productVersion | cut -f 1 -d '.')
-DARWIN_MINOR_VERSION	= $(shell sw_vers -productVersion | cut -f 2 -d '.')
-
-os_x_before	= $(shell if [ $(DARWIN_MAJOR_VERSION) -le $(1) -a \
-	$(DARWIN_MINOR_VERSION) -le $(2) ] ; then echo "$(3)"; else echo "$(4)"; fi ;)
-
-# Snow Leopards build environment has no longer restrictions as described above
-HOSTCC		 = $(call os_x_before, 10, 5, "cc", "gcc")
-HOSTCFLAGS	+= $(call os_x_before, 10, 4, "-traditional-cpp")
-HOSTLDFLAGS	+= $(call os_x_before, 10, 5, "-multiply_defined suppress")
-else
 HOSTCC		= gcc
-endif
-
-ifeq ($(HOSTOS),cygwin)
-HOSTCFLAGS	+= -ansi
-endif
 
 # We build some files with extra pedantic flags to try to minimize things
 # that won't build on some weird host compiler -- though there are lots of
@@ -258,29 +239,6 @@ endif
 LDFLAGS_u-boot-spl += -T $(obj)u-boot-spl.lds $(LDFLAGS_FINAL)
 ifneq ($(CONFIG_SPL_TEXT_BASE),)
 LDFLAGS_u-boot-spl += -Ttext $(CONFIG_SPL_TEXT_BASE)
-endif
-
-# Location of a usable BFD library, where we define "usable" as
-# "built for ${HOST}, supports ${TARGET}".  Sensible values are
-# - When cross-compiling: the root of the cross-environment
-# - Linux/ppc (native): /usr
-# - NetBSD/ppc (native): you lose ... (must extract these from the
-#   binutils build directory, plus the native and U-Boot include
-#   files don't like each other)
-#
-# So far, this is used only by tools/gdb/Makefile.
-
-ifeq ($(HOSTOS),darwin)
-BFD_ROOT_DIR =		/usr/local/tools
-else
-ifeq ($(HOSTARCH),$(ARCH))
-# native
-BFD_ROOT_DIR =		/usr
-else
-#BFD_ROOT_DIR =		/LinuxPPC/CDK		# Linux/i386
-#BFD_ROOT_DIR =		/usr/pkg/cross		# NetBSD/i386
-BFD_ROOT_DIR =		/opt/powerpc
-endif
 endif
 
 #########################################################################
