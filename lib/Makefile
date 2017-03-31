@@ -25,7 +25,6 @@ include $(TOPDIR)/config.mk
 
 LIB	= $(obj)libgeneric.o
 
-ifndef CONFIG_SPL_BUILD
 COBJS-$(CONFIG_ADDR_MAP) += addr_map.o
 COBJS-$(CONFIG_BCH) += bch.o
 COBJS-$(CONFIG_AES) += aes.o
@@ -52,13 +51,6 @@ COBJS-$(CONFIG_SHA1) += sha1.o
 COBJS-$(CONFIG_SHA256) += sha256.o
 COBJS-y	+= strmhz.o
 COBJS-$(CONFIG_RBTREE)	+= rbtree.o
-else
-COBJS-$(CONFIG_SPL_SPI_FLASH_SUPPORT) += display_options.o
-endif
-
-ifdef CONFIG_SPL_BUILD
-COBJS-$(CONFIG_SPL_YMODEM_SUPPORT) += crc16.o
-endif
 COBJS-y += crc32.o
 COBJS-y += ctype.o
 COBJS-y += div64.o

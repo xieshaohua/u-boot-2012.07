@@ -65,21 +65,11 @@ export	TOPDIR SRCTREE OBJTREE
 MKCONFIG	:= $(SRCTREE)/mkconfig
 export MKCONFIG
 
-ifneq ($(OBJTREE),$(SRCTREE))
-REMOTE_BUILD	:= 1
-export REMOTE_BUILD
-endif
-
 # $(obj) and (src) are defined in config.mk but here in main Makefile
 # we also need them before config.mk is included which is the case for
 # some targets like unconfig, clean, clobber, distclean, etc.
-ifneq ($(OBJTREE),$(SRCTREE))
-obj := $(OBJTREE)/
-src := $(SRCTREE)/
-else
 obj :=
 src :=
-endif
 export obj src
 
 # Make sure CDPATH settings don't interfere
@@ -89,14 +79,13 @@ unexport CDPATH
 
 # The "tools" are needed early, so put this first
 # Don't include stuff already done in $(LIBS)
-# The "examples" conditionally depend on U-Boot (say, when USE_PRIVATE_LIBGCC
-# is "yes"), so compile examples after U-Boot is compiled.
 SUBDIR_TOOLS = tools
 SUBDIRS = $(SUBDIR_TOOLS)
 
 .PHONY : $(SUBDIRS) $(VERSION_FILE) $(TIMESTAMP_FILE)
 
 ifeq ($(obj)include/config.mk,$(wildcard $(obj)include/config.mk))
+$(info "++++++++++++++++++++++++++++++++++++++++++")
 
 # Include autoconf.mk before config.mk so that the config options are available
 # to all top level build files.  We need the dummy all: target to prevent the
@@ -109,51 +98,13 @@ sinclude $(obj)include/autoconf.mk
 include $(obj)include/config.mk
 export	ARCH CPU BOARD VENDOR SOC
 
-# set default to nothing for native builds
-ifeq ($(HOSTARCH),$(ARCH))
-CROSS_COMPILE ?=
-endif
-
 # load other configuration
 include $(TOPDIR)/config.mk
 
 # If board code explicitly specified LDSCRIPT or CONFIG_SYS_LDSCRIPT, use
 # that (or fail if absent).  Otherwise, search for a linker script in a
 # standard location.
-
-LDSCRIPT_MAKEFILE_DIR = $(dir $(LDSCRIPT))
-
-ifndef LDSCRIPT
-	#LDSCRIPT := $(TOPDIR)/board/$(BOARDDIR)/u-boot.lds.debug
-	ifdef CONFIG_SYS_LDSCRIPT
-		# need to strip off double quotes
-		LDSCRIPT := $(subst ",,$(CONFIG_SYS_LDSCRIPT))
-	endif
-endif
-
-# If there is no specified link script, we look in a number of places for it
-ifndef LDSCRIPT
-	ifeq ($(CONFIG_NAND_U_BOOT),y)
-		LDSCRIPT := $(TOPDIR)/board/$(BOARDDIR)/u-boot-nand.lds
-		ifeq ($(wildcard $(LDSCRIPT)),)
-			LDSCRIPT := $(TOPDIR)/$(CPUDIR)/u-boot-nand.lds
-		endif
-	endif
-	ifeq ($(wildcard $(LDSCRIPT)),)
-		LDSCRIPT := $(TOPDIR)/board/$(BOARDDIR)/u-boot.lds
-	endif
-	ifeq ($(wildcard $(LDSCRIPT)),)
-		LDSCRIPT := $(TOPDIR)/$(CPUDIR)/u-boot.lds
-	endif
-	ifeq ($(wildcard $(LDSCRIPT)),)
-		LDSCRIPT := $(TOPDIR)/arch/$(ARCH)/cpu/u-boot.lds
-		# We don't expect a Makefile here
-		LDSCRIPT_MAKEFILE_DIR =
-	endif
-	ifeq ($(wildcard $(LDSCRIPT)),)
-$(error could not find linker script)
-	endif
-endif
+LDSCRIPT := $(TOPDIR)/arch/$(ARCH)/cpu/u-boot.lds
 
 #########################################################################
 # U-Boot objects....order is important (i.e. start must be first)
@@ -166,19 +117,14 @@ LIBS  = lib/libgeneric.o
 LIBS += lib/lzma/liblzma.o
 LIBS += lib/lzo/liblzo.o
 LIBS += lib/zlib/libz.o
-ifeq ($(CONFIG_TIZEN),y)
-LIBS += lib/tizen/libtizen.o
-endif
-LIBS += $(shell if [ -f board/$(VENDOR)/common/Makefile ]; then echo \
-	"board/$(VENDOR)/common/lib$(VENDOR).o"; fi)
+#LIBS += $(shell if [ -f board/$(VENDOR)/common/Makefile ]; then echo \
+#	"board/$(VENDOR)/common/lib$(VENDOR).o"; fi)
 LIBS += $(CPUDIR)/lib$(CPU).o
 ifdef SOC
 LIBS += $(CPUDIR)/$(SOC)/lib$(SOC).o
 endif
 LIBS += arch/$(ARCH)/lib/lib$(ARCH).o
-LIBS += fs/cramfs/libcramfs.o fs/fat/libfat.o fs/fdos/libfdos.o fs/jffs2/libjffs2.o \
-	fs/reiserfs/libreiserfs.o fs/ext2/libext2fs.o fs/yaffs2/libyaffs2.o \
-	fs/ubifs/libubifs.o
+LIBS += fs/jffs2/libjffs2.o fs/yaffs2/libyaffs2.o
 LIBS += net/libnet.o
 LIBS += disk/libdisk.o
 LIBS += drivers/mtd/libmtd.o
@@ -197,15 +143,7 @@ LIBBOARD = board/$(BOARDDIR)/lib$(BOARD).o
 LIBBOARD := $(addprefix $(obj),$(LIBBOARD))
 
 # Add GCC lib
-ifdef USE_PRIVATE_LIBGCC
-ifeq ("$(USE_PRIVATE_LIBGCC)", "yes")
-PLATFORM_LIBGCC = $(OBJTREE)/arch/$(ARCH)/lib/libgcc.o
-else
-PLATFORM_LIBGCC = -L $(USE_PRIVATE_LIBGCC) -lgcc
-endif
-else
 PLATFORM_LIBGCC := -L $(shell dirname `$(CC) $(CFLAGS) -print-libgcc-file-name`) -lgcc
-endif
 PLATFORM_LIBS += $(PLATFORM_LIBGCC)
 export PLATFORM_LIBS
 
@@ -224,134 +162,22 @@ __LIBS := $(subst $(obj),,$(LIBS)) $(subst $(obj),,$(LIBBOARD))
 #########################################################################
 #########################################################################
 
-ifneq ($(CONFIG_BOARD_SIZE_LIMIT),)
-BOARD_SIZE_CHECK = \
-	@actual=`wc -c $@ | awk '{print $$1}'`; \
-	limit=$(CONFIG_BOARD_SIZE_LIMIT); \
-	if test $$actual -gt $$limit; then \
-		echo "$@ exceeds file size limit:"; \
-		echo "  limit:  $$limit bytes"; \
-		echo "  actual: $$actual bytes"; \
-		echo "  excess: $$((actual - limit)) bytes"; \
-		exit 1; \
-	fi
-else
-BOARD_SIZE_CHECK =
-endif
-
 # Always append ALL so that arch config.mk's can add custom ones
-ALL-y += $(obj)u-boot.srec $(obj)u-boot.bin $(obj)System.map
+ALL-y += $(obj)u-boot.bin $(obj)System.map
 
 ALL-$(CONFIG_NAND_U_BOOT) += $(obj)u-boot-nand.bin
-ALL-$(CONFIG_ONENAND_U_BOOT) += $(obj)u-boot-onenand.bin
-ONENAND_BIN ?= $(obj)onenand_ipl/onenand-ipl-2k.bin
-ALL-$(CONFIG_SPL) += $(obj)spl/u-boot-spl.bin
-ALL-$(CONFIG_OF_SEPARATE) += $(obj)u-boot.dtb $(obj)u-boot-dtb.bin
 
 all:		$(ALL-y)
 
-$(obj)u-boot.dtb:	$(obj)u-boot
-		$(MAKE) -C dts binary
-		mv $(obj)dts/dt.dtb $@
-
-$(obj)u-boot-dtb.bin:	$(obj)u-boot.bin $(obj)u-boot.dtb
-		cat $^ >$@
-
-$(obj)u-boot.hex:	$(obj)u-boot
-		$(OBJCOPY) ${OBJCFLAGS} -O ihex $< $@
-
-$(obj)u-boot.srec:	$(obj)u-boot
-		$(OBJCOPY) -O srec $< $@
-
 $(obj)u-boot.bin:	$(obj)u-boot
 		$(OBJCOPY) ${OBJCFLAGS} -O binary $< $@
-		$(BOARD_SIZE_CHECK)
 
-$(obj)u-boot.ldr:	$(obj)u-boot
-		$(CREATE_LDR_ENV)
-		$(LDR) -T $(CONFIG_BFIN_CPU) -c $@ $< $(LDR_FLAGS)
-		$(BOARD_SIZE_CHECK)
-
-$(obj)u-boot.ldr.hex:	$(obj)u-boot.ldr
-		$(OBJCOPY) ${OBJCFLAGS} -O ihex $< $@ -I binary
-
-$(obj)u-boot.ldr.srec:	$(obj)u-boot.ldr
-		$(OBJCOPY) ${OBJCFLAGS} -O srec $< $@ -I binary
-
-$(obj)u-boot.img:	$(obj)u-boot.bin
-		$(obj)tools/mkimage -A $(ARCH) -T firmware -C none \
-		-O u-boot -a $(CONFIG_SYS_TEXT_BASE) -e 0 \
-		-n $(shell sed -n -e 's/.*U_BOOT_VERSION//p' $(VERSION_FILE) | \
-			sed -e 's/"[	 ]*$$/ for $(BOARD) board"/') \
-		-d $< $@
-
-$(obj)u-boot.imx:       $(obj)u-boot.bin
-		$(obj)tools/mkimage -n  $(CONFIG_IMX_CONFIG) -T imximage \
-		-e $(CONFIG_SYS_TEXT_BASE) -d $< $@
-
-$(obj)u-boot.kwb:       $(obj)u-boot.bin
-		$(obj)tools/mkimage -n $(CONFIG_SYS_KWD_CONFIG) -T kwbimage \
-		-a $(CONFIG_SYS_TEXT_BASE) -e $(CONFIG_SYS_TEXT_BASE) -d $< $@
-
-$(obj)u-boot.sha1:	$(obj)u-boot.bin
-		$(obj)tools/ubsha1 $(obj)u-boot.bin
-
-$(obj)u-boot.dis:	$(obj)u-boot
-		$(OBJDUMP) -d $< > $@
-
-$(obj)u-boot.ubl:       $(obj)spl/u-boot-spl.bin $(obj)u-boot.bin
-		$(OBJCOPY) ${OBJCFLAGS} --pad-to=$(PAD_TO) -O binary $(obj)spl/u-boot-spl $(obj)spl/u-boot-spl-pad.bin
-		cat $(obj)spl/u-boot-spl-pad.bin $(obj)u-boot.bin > $(obj)u-boot-ubl.bin
-		$(obj)tools/mkimage -n $(UBL_CONFIG) -T ublimage \
-		-e $(CONFIG_SYS_TEXT_BASE) -d $(obj)u-boot-ubl.bin $(obj)u-boot.ubl
-		rm $(obj)u-boot-ubl.bin
-		rm $(obj)spl/u-boot-spl-pad.bin
-
-$(obj)u-boot.ais:       $(obj)spl/u-boot-spl.bin $(obj)u-boot.bin
-		$(obj)tools/mkimage -s -n /dev/null -T aisimage \
-			-e $(CONFIG_SPL_TEXT_BASE) \
-			-d $(obj)spl/u-boot-spl.bin \
-			$(obj)spl/u-boot-spl.ais
-		$(OBJCOPY) ${OBJCFLAGS} -I binary \
-			--pad-to=$(CONFIG_SPL_MAX_SIZE) -O binary \
-			$(obj)spl/u-boot-spl.ais $(obj)spl/u-boot-spl-pad.ais
-		cat $(obj)spl/u-boot-spl-pad.ais $(obj)u-boot.bin > \
-			$(obj)u-boot.ais
-		rm $(obj)spl/u-boot-spl{,-pad}.ais
-
-$(obj)u-boot.sb:       $(obj)u-boot.bin $(obj)spl/u-boot-spl.bin
-		elftosb -zdf imx28 -c $(TOPDIR)/board/$(BOARDDIR)/u-boot.bd \
-			-o $(obj)u-boot.sb
-
-# On x600 (SPEAr600) U-Boot is appended to U-Boot SPL.
-# Both images are created using mkimage (crc etc), so that the ROM
-# bootloader can check its integrity. Padding needs to be done to the
-# SPL image (with mkimage header) and not the binary. Otherwise the resulting image
-# which is loaded/copied by the ROM bootloader to SRAM doesn't fit.
-# The resulting image containing both U-Boot images is called u-boot.spr
-$(obj)u-boot.spr:	$(obj)u-boot.img $(obj)spl/u-boot-spl.bin
-		$(obj)tools/mkimage -A $(ARCH) -T firmware -C none \
-		-a $(CONFIG_SPL_TEXT_BASE) -e $(CONFIG_SPL_TEXT_BASE) -n XLOADER \
-		-d $(obj)spl/u-boot-spl.bin $(obj)spl/u-boot-spl.img
-		tr "\000" "\377" < /dev/zero | dd ibs=1 count=$(CONFIG_SPL_PAD_TO) \
-			of=$(obj)spl/u-boot-spl-pad.img 2>/dev/null
-		dd if=$(obj)spl/u-boot-spl.img of=$(obj)spl/u-boot-spl-pad.img \
-			conv=notrunc 2>/dev/null
-		cat $(obj)spl/u-boot-spl-pad.img $(obj)u-boot.img > $@
-
-ifeq ($(CONFIG_SANDBOX),y)
-GEN_UBOOT = \
-		cd $(LNDIR) && $(CC) $(SYMS) -T $(obj)u-boot.lds \
-			-Wl,--start-group $(__LIBS) -Wl,--end-group \
-			$(PLATFORM_LIBS) -Wl,-Map -Wl,u-boot.map -o u-boot
-else
 GEN_UBOOT = \
 		UNDEF_SYM=`$(OBJDUMP) -x $(LIBBOARD) $(LIBS) | \
 		sed  -n -e 's/.*\($(SYM_PREFIX)__u_boot_cmd_.*\)/-u\1/p'|sort|uniq`;\
 		cd $(LNDIR) && $(LD) $(LDFLAGS) $(LDFLAGS_$(@F)) $$UNDEF_SYM $(__OBJS) \
 			--start-group $(__LIBS) --end-group $(PLATFORM_LIBS) \
 			-Map u-boot.map -o u-boot
-endif
 
 $(obj)u-boot:	depend \
 		$(SUBDIR_TOOLS) $(OBJS) $(LIBBOARD) $(LIBS) $(LDSCRIPT) $(obj)u-boot.lds
@@ -365,7 +191,7 @@ ifeq ($(CONFIG_KALLSYMS),y)
 endif
 
 $(OBJS):	depend
-		$(MAKE) -C $(CPUDIR) $(if $(REMOTE_BUILD),$@,$(notdir $@))
+		$(MAKE) -C $(CPUDIR) $(notdir $@)
 
 $(LIBS):	depend $(SUBDIR_TOOLS)
 		$(MAKE) -C $(dir $(subst $(obj),,$@))
@@ -406,7 +232,7 @@ depend dep:	$(TIMESTAMP_FILE) $(VERSION_FILE) \
 		$(obj)include/autoconf.mk \
 		$(obj)include/generated/generic-asm-offsets.h \
 		$(obj)include/generated/asm-offsets.h
-		for dir in $(SUBDIRS) $(CPUDIR) $(LDSCRIPT_MAKEFILE_DIR) ; do \
+		for dir in $(SUBDIRS) $(CPUDIR) ; do \
 			$(MAKE) -C $$dir _depend ; done
 
 TAG_SUBDIRS = $(SUBDIRS)
@@ -497,8 +323,7 @@ $(obj)$(CPUDIR)/$(SOC)/asm-offsets.s:	$(obj)include/autoconf.mk.dep
 
 #########################################################################
 else	# !config.mk
-all $(obj)u-boot.hex $(obj)u-boot.srec $(obj)u-boot.bin \
-$(obj)u-boot.img $(obj)u-boot.dis $(obj)u-boot \
+all $(obj)u-boot.bin $(obj)u-boot.dis $(obj)u-boot \
 $(filter-out tools,$(SUBDIRS)) \
 updater depend dep tags ctags etags cscope $(obj)System.map:
 	@echo "System not configured - see README" >&2
@@ -598,7 +423,6 @@ clean:
 	@rm -f $(obj)$(CPUDIR)/$(SOC)/asm-offsets.s
 	@rm -f $(obj)nand_spl/{u-boot.lds,u-boot-nand_spl.lds,u-boot-spl,u-boot-spl.map,System.map}
 	@rm -f $(obj)onenand_ipl/onenand-{ipl,ipl.bin,ipl.map}
-	@rm -f $(ONENAND_BIN)
 	@rm -f $(obj)onenand_ipl/u-boot.lds
 	@rm -f $(obj)spl/{u-boot-spl,u-boot-spl.bin,u-boot-spl.lds,u-boot-spl.map}
 	@rm -f $(obj)MLO
