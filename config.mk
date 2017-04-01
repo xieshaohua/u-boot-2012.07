@@ -1,47 +1,9 @@
-#
-# (C) Copyright 2000-2006
-# Wolfgang Denk, DENX Software Engineering, wd@denx.de.
-#
-# See file CREDITS for list of people who contributed to this
-# project.
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License as
-# published by the Free Software Foundation; either version 2 of
-# the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston,
-# MA 02111-1307 USA
-#
-
 #########################################################################
 
-ifeq ($(CURDIR),$(SRCTREE))
 dir :=
-else
-dir := $(subst $(SRCTREE)/,,$(CURDIR))
-endif
-
-ifneq ($(OBJTREE),$(SRCTREE))
-# Create object files for SPL in a separate directory
-obj := $(if $(dir),$(OBJTREE)/$(dir)/,$(OBJTREE)/)
-src := $(if $(dir),$(SRCTREE)/$(dir)/,$(SRCTREE)/)
-
-$(shell mkdir -p $(obj))
-else
-# Create object files for SPL in a separate directory
 obj :=
 src :=
-endif
 
-# clean the slate ...
 PLATFORM_RELFLAGS =
 PLATFORM_CPPFLAGS =
 PLATFORM_LDFLAGS =
@@ -89,12 +51,8 @@ cc-option-sys = $(shell mkdir -p $(dir $(CC_TEST_OFILE)); \
 		echo 'CC_OPTIONS += $(strip $1)' >> $(CC_OPTIONS_CACHE_FILE); \
 		echo "$(1)"; fi)
 
-ifeq ($(CONFIG_CC_OPT_CACHE_DISABLE),y)
-cc-option = $(strip $(if $(call cc-option-sys,$1),$1,$2))
-else
 cc-option = $(strip $(if $(findstring $1,$(CC_OPTIONS)),$1,\
 		$(if $(call cc-option-sys,$1),$1,$2)))
-endif
 
 # cc-version
 # Usage gcc-ver := $(call cc-version)
@@ -114,7 +72,6 @@ STRIP	= $(CROSS_COMPILE)strip
 OBJCOPY = $(CROSS_COMPILE)objcopy
 OBJDUMP = $(CROSS_COMPILE)objdump
 RANLIB	= $(CROSS_COMPILE)RANLIB
-DTC	= dtc
 
 #########################################################################
 
@@ -128,23 +85,15 @@ sinclude $(OBJTREE)/include/config.mk
 # CPU-specific code.
 CPUDIR=arch/$(ARCH)/cpu/$(CPU)
 ifneq ($(SRCTREE)/$(CPUDIR),$(wildcard $(SRCTREE)/$(CPUDIR)))
+$(info "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 CPUDIR=arch/$(ARCH)/cpu
 endif
 
 sinclude $(TOPDIR)/arch/$(ARCH)/config.mk	# include architecture dependend rules
 sinclude $(TOPDIR)/$(CPUDIR)/config.mk		# include  CPU	specific rules
-
-ifdef	SOC
 sinclude $(TOPDIR)/$(CPUDIR)/$(SOC)/config.mk	# include  SoC	specific rules
-endif
-ifdef	VENDOR
 BOARDDIR = $(VENDOR)/$(BOARD)
-else
-BOARDDIR = $(BOARD)
-endif
-ifdef	BOARD
 sinclude $(TOPDIR)/board/$(BOARDDIR)/config.mk	# include board specific rules
-endif
 
 #########################################################################
 
@@ -162,46 +111,15 @@ gccincdir := $(shell $(CC) -print-file-name=include)
 CPPFLAGS := $(DBGFLAGS) $(OPTFLAGS) $(RELFLAGS)		\
 	-D__KERNEL__
 
-# Enable garbage collection of un-used sections for SPL
-ifeq ($(CONFIG_SPL_BUILD),y)
-CPPFLAGS += -ffunction-sections -fdata-sections
-LDFLAGS_FINAL += --gc-sections
-endif
-
 ifneq ($(CONFIG_SYS_TEXT_BASE),)
 CPPFLAGS += -DCONFIG_SYS_TEXT_BASE=$(CONFIG_SYS_TEXT_BASE)
-endif
-
-ifneq ($(CONFIG_SPL_TEXT_BASE),)
-CPPFLAGS += -DCONFIG_SPL_TEXT_BASE=$(CONFIG_SPL_TEXT_BASE)
-endif
-
-ifneq ($(CONFIG_SPL_PAD_TO),)
-CPPFLAGS += -DCONFIG_SPL_PAD_TO=$(CONFIG_SPL_PAD_TO)
-endif
-
-ifeq ($(CONFIG_SPL_BUILD),y)
-CPPFLAGS += -DCONFIG_SPL_BUILD
-endif
-
-ifneq ($(RESET_VECTOR_ADDRESS),)
-CPPFLAGS += -DRESET_VECTOR_ADDRESS=$(RESET_VECTOR_ADDRESS)
-endif
-
-ifneq ($(OBJTREE),$(SRCTREE))
-CPPFLAGS += -I$(OBJTREE)/include2 -I$(OBJTREE)/include
 endif
 
 CPPFLAGS += -I$(TOPDIR)/include
 CPPFLAGS += -fno-builtin -ffreestanding -nostdinc	\
 	-isystem $(gccincdir) -pipe $(PLATFORM_CPPFLAGS)
 
-ifdef BUILD_TAG
-CFLAGS := $(CPPFLAGS) -Wall -Wstrict-prototypes \
-	-DBUILD_TAG='"$(BUILD_TAG)"'
-else
 CFLAGS := $(CPPFLAGS) -Wall -Wstrict-prototypes
-endif
 
 CFLAGS_SSP := $(call cc-option,-fno-stack-protector)
 CFLAGS += $(CFLAGS_SSP)
@@ -219,13 +137,6 @@ CFLAGS += $(CFLAGS_STACK)
 # option to the assembler.
 AFLAGS_DEBUG :=
 
-# turn jbsr into jsr for m68k
-ifeq ($(ARCH),m68k)
-ifeq ($(findstring 3.4,$(shell $(CC) --version)),3.4)
-AFLAGS_DEBUG := -Wa,-gstabs,-S
-endif
-endif
-
 AFLAGS := $(AFLAGS_DEBUG) -D__ASSEMBLY__ $(CPPFLAGS)
 
 LDFLAGS += $(PLATFORM_LDFLAGS)
@@ -237,9 +148,6 @@ LDFLAGS_u-boot += -Ttext $(CONFIG_SYS_TEXT_BASE)
 endif
 
 LDFLAGS_u-boot-spl += -T $(obj)u-boot-spl.lds $(LDFLAGS_FINAL)
-ifneq ($(CONFIG_SPL_TEXT_BASE),)
-LDFLAGS_u-boot-spl += -Ttext $(CONFIG_SPL_TEXT_BASE)
-endif
 
 #########################################################################
 
