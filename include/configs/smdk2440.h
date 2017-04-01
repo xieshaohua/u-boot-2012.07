@@ -67,14 +67,6 @@
 #define CONFIG_SERIAL1		1	/* we use SERIAL 1 on SMDK2410 */
 
 /************************************************************
- * USB support (currently only works with D-cache off)
- ************************************************************/
-//#define CONFIG_USB_OHCI
-//#define CONFIG_USB_KEYBOARD
-//#define CONFIG_USB_STORAGE
-//#define CONFIG_DOS_PARTITION
-
-/************************************************************
  * RTC
  ************************************************************/
 #define CONFIG_RTC_S3C24X0
