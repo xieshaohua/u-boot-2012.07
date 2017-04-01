@@ -27,11 +27,11 @@
 CONFIG_NAND_SPL	= y
 
 include $(TOPDIR)/config.mk
-include $(TOPDIR)/nand_spl/board/$(BOARDDIR)/config.mk
+include $(TOPDIR)/nand_spl/config.mk
 
 nandobj	:= $(OBJTREE)/nand_spl/
 
-LDSCRIPT= $(TOPDIR)/nand_spl/board/$(BOARDDIR)/u-boot.lds
+LDSCRIPT= $(TOPDIR)/nand_spl/u-boot.lds
 LDFLAGS := -T $(nandobj)u-boot.lds -Ttext $(CONFIG_SYS_TEXT_BASE) $(LDFLAGS) \
 		$(LDFLAGS_FINAL) -gc-sections
 AFLAGS	+= -DCONFIG_NAND_SPL
@@ -43,7 +43,7 @@ COBJS	= nand_boot.o s3c2440_nand.o smdk2440_nand_spl.o nand_base.o
 SRCS	:= $(addprefix $(obj),$(SOBJS:.o=.S) $(COBJS:.o=.c))
 OBJS	:= $(addprefix $(obj),$(SOBJS) $(COBJS))
 __OBJS	:= $(SOBJS) $(COBJS)
-LNDIR	:= $(nandobj)board/$(BOARDDIR)
+LNDIR	:= $(nandobj)
 
 ALL	= $(nandobj)u-boot-spl $(nandobj)u-boot-spl.bin $(nandobj)u-boot-spl-16k.bin
 
@@ -66,32 +66,32 @@ $(nandobj)u-boot.lds: $(LDSCRIPT)
 # create symbolic links for common files
 
 # from cpu directory
-$(obj)start.S:
-	@rm -f $@
-	@ln -s $(TOPDIR)/arch/arm/cpu/arm920t/start.S $@
+#$(obj)start.S:
+#	@rm -f $@
+#	@ln -s $(TOPDIR)/arch/arm/cpu/arm920t/start.S $@
 
 # from board directory
-$(obj)lowlevel_init.S:
-	@rm -f $@
-	@ln -s $(TOPDIR)/board/samsung/smdk2440/lowlevel_init.S $@
+#$(obj)lowlevel_init.S:
+#	@rm -f $@
+#	@ln -s $(TOPDIR)/board/samsung/smdk2440/lowlevel_init.S $@
 
-$(obj)smdk2440_nand_spl.c:
-	@rm -f $@
-	@ln -s $(TOPDIR)/board/samsung/smdk2440/smdk2440_nand_spl.c $@
+#$(obj)smdk2440_nand_spl.c:
+#	@rm -f $@
+#	@ln -s $(TOPDIR)/board/samsung/smdk2440/smdk2440_nand_spl.c $@
 
 # from nand_spl directory
-$(obj)nand_boot.c:
-	@rm -f $@
-	@ln -s $(TOPDIR)/nand_spl/nand_boot.c $@
+#$(obj)nand_boot.c:
+#	@rm -f $@
+#	@ln -s $(TOPDIR)/nand_spl/nand_boot.c $@
 
 # from drivers/mtd/nand directory
-$(obj)s3c2440_nand.c:
-	@rm -f $@
-	@ln -s $(TOPDIR)/drivers/mtd/nand/s3c2440_nand.c $@
+#$(obj)s3c2440_nand.c:
+#	@rm -f $@
+#	@ln -s $(TOPDIR)/drivers/mtd/nand/s3c2440_nand.c $@
 
-$(obj)nand_base.c:
-	@rm -f $@
-	@ln -s $(TOPDIR)/drivers/mtd/nand/nand_base.c $@
+#$(obj)nand_base.c:
+#	@rm -f $@
+#	@ln -s $(TOPDIR)/drivers/mtd/nand/nand_base.c $@
 #########################################################################
 
 $(obj)%.o:	$(obj)%.S
