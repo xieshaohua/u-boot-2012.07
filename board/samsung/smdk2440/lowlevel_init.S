@@ -201,12 +201,12 @@ lowlevel_init:
 	nop
 	nop
 
-	/* init led ports, turn off all leds */
-	ldr	r0, =GPFCON
-	ldr	r1, =(1<<(6*2))|(1<<(5*2))|(1<<(4*2))
+	/* init led ports, turn off all leds GPB5/GPB6/GPB7/GPB8 */
+	ldr	r0, =GPBCON
+	ldr	r1, =(1<<(5*2))|(1<<(6*2))|(1<<(7*2))|(1<<(8*2))
 	str	r1, [r0]
 	ldr	r0, =GPFDAT
-	ldr	r1, =(1<<6)|(1<<5)|(1<<4)
+	ldr	r1, =(1<<5)|(1<<6)|(1<<7)|(1<<8)
 	str	r1, [r0]
 
 	/* memory control configuration */
@@ -251,48 +251,64 @@ SMRDATA:
  */
 	.globl	led1_on
 led1_on:
-	ldr	r0, =GPFDAT
-	ldr	r1, [r0]
-	bic	r1, r1, #(1<<4)
-	str	r1, [r0]
-	mov	pc, lr
-    
-	.globl	led1_off
-led1_off:
-	ldr	r0, =GPFDAT
-	ldr	r1, [r0]
-	orr	r1, r1, #(1<<4)
-	str	r1, [r0]
-	mov	pc, lr
-    
-	.globl	led2_on
-led2_on:
-	ldr	r0, =GPFDAT
+	ldr	r0, =GPBDAT
 	ldr	r1, [r0]
 	bic	r1, r1, #(1<<5)
 	str	r1, [r0]
 	mov	pc, lr
     
-	.globl	led2_off
-led2_off:
-	ldr	r0, =GPFDAT
+	.globl	led1_off
+led1_off:
+	ldr	r0, =GPBDAT
 	ldr	r1, [r0]
 	orr	r1, r1, #(1<<5)
+	str	r1, [r0]
+	mov	pc, lr
+    
+	.globl	led2_on
+led2_on:
+	ldr	r0, =GPBDAT
+	ldr	r1, [r0]
+	bic	r1, r1, #(1<<6)
+	str	r1, [r0]
+	mov	pc, lr
+    
+	.globl	led2_off
+led2_off:
+	ldr	r0, =GPBDAT
+	ldr	r1, [r0]
+	orr	r1, r1, #(1<<6)
 	str	r1, [r0]
 	mov	pc, lr
 
 	.globl	led3_on
 led3_on:
-	ldr	r0, =GPFDAT
+	ldr	r0, =GPBDAT
 	ldr	r1, [r0]
-	bic	r1, r1, #(1<<6)
+	bic	r1, r1, #(1<<7)
 	str	r1, [r0]
 	mov	pc, lr
 
 	.globl	led3_off
 led3_off:
-	ldr	r0, =GPFDAT
+	ldr	r0, =GPBDAT
 	ldr	r1, [r0]
-	orr	r1, r1, #(1<<6)
+	orr	r1, r1, #(1<<7)
+	str	r1, [r0]
+	mov	pc, lr
+
+	.globl	led4_on
+led4_on:
+	ldr	r0, =GPBDAT
+	ldr	r1, [r0]
+	bic	r1, r1, #(1<<8)
+	str	r1, [r0]
+	mov	pc, lr
+
+	.globl	led4_off
+led4_off:
+	ldr	r0, =GPBDAT
+	ldr	r1, [r0]
+	orr	r1, r1, #(1<<8)
 	str	r1, [r0]
 	mov	pc, lr
