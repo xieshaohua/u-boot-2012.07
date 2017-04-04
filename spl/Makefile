@@ -27,11 +27,11 @@
 CONFIG_NAND_SPL	= y
 
 include $(TOPDIR)/config.mk
-include $(TOPDIR)/nand_spl/config.mk
+include $(TOPDIR)/spl/config.mk
 
-nandobj	:= $(OBJTREE)/nand_spl/
+nandobj	:= $(OBJTREE)/spl/
 
-LDSCRIPT= $(TOPDIR)/nand_spl/u-boot.lds
+LDSCRIPT= $(TOPDIR)/spl/u-boot.lds
 LDFLAGS := -T $(nandobj)u-boot.lds -Ttext $(CONFIG_SYS_TEXT_BASE) $(LDFLAGS) \
 		$(LDFLAGS_FINAL) -gc-sections
 AFLAGS	+= -DCONFIG_NAND_SPL

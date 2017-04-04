@@ -141,11 +141,11 @@ $(LDSCRIPT):	depend
 $(obj)u-boot.lds: $(LDSCRIPT)
 		$(CPP) $(CPPFLAGS) $(LDPPFLAGS) -ansi -D__ASSEMBLY__ -P - <$^ >$@
 
-nand_spl:	$(TIMESTAMP_FILE) $(VERSION_FILE) depend
-		$(MAKE) -C nand_spl all
+spl:	$(TIMESTAMP_FILE) $(VERSION_FILE) depend
+		$(MAKE) -C spl all
 
-$(obj)u-boot-nand.bin:	nand_spl $(obj)u-boot.bin
-		cat $(obj)nand_spl/u-boot-spl-16k.bin $(obj)u-boot.bin > $(obj)u-boot-nand.bin
+$(obj)u-boot-nand.bin:	spl $(obj)u-boot.bin
+		cat $(obj)spl/u-boot-spl-16k.bin $(obj)u-boot.bin > $(obj)u-boot-nand.bin
 
 #updater:
 #		$(MAKE) -C tools/updater all
@@ -277,14 +277,6 @@ $(obj).boards.depend:	boards.cfg
 #########################################################################
 
 clean:
-	@rm -f $(obj)tools/bmp_logo	   $(obj)tools/easylogo/easylogo  \
-	       $(obj)tools/env/{fw_printenv,fw_setenv}			  \
-	       $(obj)tools/envcrc					  \
-	       $(obj)tools/gdb/{astest,gdbcont,gdbsend}			  \
-	       $(obj)tools/gen_eth_addr    $(obj)tools/img2srec		  \
-	       $(obj)tools/mk{env,}image   $(obj)tools/mpc86x_clk	  \
-	       $(obj)tools/mk{smdk5250,}spl				  \
-	       $(obj)tools/ncb		   $(obj)tools/ubsha1
 	@rm -f $(obj)board/cray/L1/{bootscript.c,bootscript.image}	  \
 	       $(obj)board/matrix_vision/*/bootscript.img		  \
 	       $(obj)board/voiceblue/eeprom 				  \
@@ -296,10 +288,7 @@ clean:
 	@rm -f $(obj)lib/asm-offsets.s
 	@rm -f $(obj)include/generated/asm-offsets.h
 	@rm -f $(obj)$(CPUDIR)/$(SOC)/asm-offsets.s
-	@rm -f $(obj)nand_spl/{u-boot.lds,u-boot-nand_spl.lds,u-boot-spl,u-boot-spl.map,System.map}
-	@rm -f $(obj)onenand_ipl/onenand-{ipl,ipl.bin,ipl.map}
-	@rm -f $(obj)onenand_ipl/u-boot.lds
-	@rm -f $(obj)spl/{u-boot-spl,u-boot-spl.bin,u-boot-spl.lds,u-boot-spl.map}
+	@rm -f $(obj)spl/{u-boot.lds,u-boot-nand_spl.lds,u-boot-spl,u-boot-spl.map,System.map}
 	@rm -f $(obj)MLO
 	@rm -f $(TIMESTAMP_FILE) $(VERSION_FILE)
 	@find $(OBJTREE) -type f \
@@ -321,7 +310,7 @@ clobber:	tidy
 	@rm -f $(obj)tools/xway-swap-bytes
 	@rm -fr $(obj)include/asm/proc $(obj)include/asm/arch $(obj)include/asm
 	@rm -fr $(obj)include/generated
-	@[ ! -d $(obj)nand_spl ] || find $(obj)nand_spl -name "*" -type l -print | xargs rm -f
+	@[ ! -d $(obj)spl ] || find $(obj)spl -name "*" -type l -print | xargs rm -f
 
 distclean:	clobber unconfig
 
