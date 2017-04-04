@@ -36,7 +36,7 @@
  */
 
 #include <common.h>
-#include <asm/proc-armv/ptrace.h>
+#include <asm/proc/ptrace.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 

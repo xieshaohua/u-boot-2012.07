@@ -263,9 +263,9 @@ unconfig:
 %_config::	unconfig
 	@$(MKCONFIG) -A $(@:_config=)
 
-sinclude $(obj).boards.depend
-$(obj).boards.depend:	boards.cfg
-	@awk '(NF && $$1 !~ /^#/) { print $$1 ": " $$1 "_config; $$(MAKE)" }' $< > $@
+#sinclude $(obj).boards.depend
+#$(obj).boards.depend:	boards.cfg
+#	@awk '(NF && $$1 !~ /^#/) { print $$1 ": " $$1 "_config; $$(MAKE)" }' $< > $@
 
 #
 # Functions to generate common board directory names
@@ -302,7 +302,8 @@ clobber:	tidy
 	@rm -f $(OBJS) $(obj)*.bak $(obj)ctags $(obj)etags $(obj)TAGS \
 		$(obj)cscope.* $(obj)*.*~
 	@rm -f $(obj)u-boot $(obj)u-boot.map $(obj)u-boot.hex $(ALL-y)
-	@rm -fr $(obj)include/asm/proc $(obj)include/asm/arch $(obj)include/asm
+#	@rm -fr $(obj)include/asm/proc $(obj)include/asm/arch $(obj)include/asm
+#	@rm -fr $(obj)include/asm/proc $(obj)include/asm/arch
 	@rm -fr $(obj)include/generated
 
 distclean:	clobber unconfig
