@@ -108,7 +108,7 @@ __LIBS := $(subst $(obj),,$(LIBS)) $(subst $(obj),,$(LIBBOARD))
 # Always append ALL so that arch config.mk's can add custom ones
 ALL-y += $(obj)u-boot.bin $(obj)System.map
 
-ALL-$(CONFIG_NAND_U_BOOT) += $(obj)u-boot-nand.bin
+ALL-$(CONFIG_NAND_U_BOOT) += $(obj)u-boot-spl.bin
 
 all:		$(ALL-y)
 
@@ -144,8 +144,8 @@ $(obj)u-boot.lds: $(LDSCRIPT)
 spl:	$(TIMESTAMP_FILE) $(VERSION_FILE) depend
 		$(MAKE) -C spl all
 
-$(obj)u-boot-nand.bin:	spl $(obj)u-boot.bin
-		cat $(obj)spl/u-boot-spl-16k.bin $(obj)u-boot.bin > $(obj)u-boot-nand.bin
+$(obj)u-boot-spl.bin:	spl $(obj)u-boot.bin
+		cat $(obj)spl/spl-4k.bin $(obj)u-boot.bin > $(obj)u-boot-spl.bin
 
 #updater:
 #		$(MAKE) -C tools/updater all
@@ -277,18 +277,13 @@ $(obj).boards.depend:	boards.cfg
 #########################################################################
 
 clean:
-	@rm -f $(obj)board/cray/L1/{bootscript.c,bootscript.image}	  \
-	       $(obj)board/matrix_vision/*/bootscript.img		  \
-	       $(obj)board/voiceblue/eeprom 				  \
-	       $(obj)u-boot.lds						  \
-	       $(obj)arch/blackfin/cpu/bootrom-asm-offsets.[chs]	  \
-	       $(obj)arch/blackfin/cpu/init.{lds,elf}
-	@rm -f $(obj)include/bmp_logo.h
-	@rm -f $(obj)include/bmp_logo_data.h
-	@rm -f $(obj)lib/asm-offsets.s
-	@rm -f $(obj)include/generated/asm-offsets.h
-	@rm -f $(obj)$(CPUDIR)/$(SOC)/asm-offsets.s
-	@rm -f $(obj)spl/{u-boot.lds,u-boot-nand_spl.lds,u-boot-spl,u-boot-spl.map,System.map}
+	@rm -f u-boot.lds					  \
+	@rm -f include/bmp_logo.h
+	@rm -f include/bmp_logo_data.h
+	@rm -f lib/asm-offsets.s
+	@rm -f include/generated/asm-offsets.h
+	@rm -f $(CPUDIR)/$(SOC)/asm-offsets.s
+	@rm -f spl/spl spl/spl.map
 	@rm -f $(obj)MLO
 	@rm -f $(TIMESTAMP_FILE) $(VERSION_FILE)
 	@find $(OBJTREE) -type f \
@@ -307,10 +302,8 @@ clobber:	tidy
 	@rm -f $(OBJS) $(obj)*.bak $(obj)ctags $(obj)etags $(obj)TAGS \
 		$(obj)cscope.* $(obj)*.*~
 	@rm -f $(obj)u-boot $(obj)u-boot.map $(obj)u-boot.hex $(ALL-y)
-	@rm -f $(obj)tools/xway-swap-bytes
 	@rm -fr $(obj)include/asm/proc $(obj)include/asm/arch $(obj)include/asm
 	@rm -fr $(obj)include/generated
-	@[ ! -d $(obj)spl ] || find $(obj)spl -name "*" -type l -print | xargs rm -f
 
 distclean:	clobber unconfig
 
