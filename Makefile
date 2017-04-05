@@ -26,10 +26,6 @@ all:
 sinclude $(obj)include/autoconf.mk.dep
 sinclude $(obj)include/autoconf.mk
 
-# load ARCH, BOARD, and CPU configuration
-include $(obj)include/config.mk
-export	ARCH CPU BOARD VENDOR SOC
-
 # load other configuration
 include $(TOPDIR)/config.mk
 
@@ -193,7 +189,6 @@ $(obj)$(CPUDIR)/$(SOC)/asm-offsets.s:	$(obj)include/autoconf.mk.dep
 
 #########################################################################
 unconfig:
-#	@rm -f $(obj)include/config.h $(obj)include/config.mk
 	@rm -f $(obj)board/*/config.tmp $(obj)board/*/*/config.tmp
 	@rm -f $(obj)include/autoconf.mk $(obj)include/autoconf.mk.dep
 

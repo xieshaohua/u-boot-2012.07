@@ -77,7 +77,12 @@ RANLIB	= $(CROSS_COMPILE)RANLIB
 
 # Load generated board configuration
 sinclude $(OBJTREE)/include/autoconf.mk
-sinclude $(OBJTREE)/include/config.mk
+
+ARCH   = arm
+CPU    = arm920t
+BOARD  = smdk2440
+VENDOR = samsung
+SOC    = s3c24x0
 
 # Some architecture config.mk files need to know what CPUDIR is set to,
 # so calculate CPUDIR before including ARCH/SOC/CPU config.mk files.
