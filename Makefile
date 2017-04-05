@@ -30,7 +30,7 @@ export obj src
 
 .PHONY : $(VERSION_FILE) $(TIMESTAMP_FILE)
 
-ifeq ($(obj)include/config.mk,$(wildcard $(obj)include/config.mk))
+#ifeq ($(obj)include/config.mk,$(wildcard $(obj)include/config.mk))
 
 # Include autoconf.mk before config.mk so that the config options are available
 # to all top level build files.  We need the dummy all: target to prevent the
@@ -63,9 +63,7 @@ LIBS += lib/lzma/liblzma.o
 LIBS += lib/lzo/liblzo.o
 LIBS += lib/zlib/libz.o
 LIBS += $(CPUDIR)/lib$(CPU).o
-#ifdef SOC
 LIBS += $(CPUDIR)/$(SOC)/lib$(SOC).o
-#endif
 LIBS += arch/$(ARCH)/lib/lib$(ARCH).o
 LIBS += fs/jffs2/libjffs2.o fs/yaffs2/libyaffs2.o
 LIBS += net/libnet.o
@@ -74,7 +72,6 @@ LIBS += drivers/mtd/libmtd.o
 LIBS += drivers/mtd/nand/libnand.o
 LIBS += drivers/mtd/ubi/libubi.o
 LIBS += drivers/net/libnet.o
-#LIBS += drivers/net/phy/libphy.o
 LIBS += drivers/rtc/librtc.o
 LIBS += drivers/serial/libserial.o
 LIBS += common/libcommon.o
@@ -147,9 +144,6 @@ spl:	$(TIMESTAMP_FILE) $(VERSION_FILE) depend
 $(obj)u-boot-spl.bin:	spl $(obj)u-boot.bin
 		cat $(obj)spl/spl-4k.bin $(obj)u-boot.bin > $(obj)u-boot-spl.bin
 
-#updater:
-#		$(MAKE) -C tools/updater all
-
 depend dep:	$(TIMESTAMP_FILE) $(VERSION_FILE) \
 		$(obj)include/autoconf.mk \
 		$(obj)include/generated/generic-asm-offsets.h \
@@ -164,7 +158,6 @@ SYSTEM_MAP = \
 $(obj)System.map:	$(obj)u-boot
 		@$(call SYSTEM_MAP,$<) > $(obj)System.map
 
-#
 # Auto-generate the autoconf.mk file (which is included by all makefiles)
 #
 # This target actually generates 2 files; autoconf.mk and autoconf.mk.dep.
@@ -213,12 +206,6 @@ $(obj)$(CPUDIR)/$(SOC)/asm-offsets.s:	$(obj)include/autoconf.mk.dep
 	fi
 
 #########################################################################
-else	# !config.mk
-need_config:
-	@echo "System not configured - see README" >&2
-	@ exit 1
-endif	# config.mk
-
 $(VERSION_FILE):
 		@mkdir -p $(dir $(VERSION_FILE))
 		@( localvers='$(shell $(TOPDIR)/tools/setlocalversion $(TOPDIR))' ; \
@@ -239,44 +226,14 @@ $(TIMESTAMP_FILE):
 		@LC_ALL=C date +'#define U_BOOT_TIME "%T"' >> $@.tmp
 		@cmp -s $@ $@.tmp && rm -f $@.tmp || mv -f $@.tmp $@
 
-#easylogo env gdb:
-#	$(MAKE) -C tools/$@ all MTD_VERSION=${MTD_VERSION}
-#gdbtools: gdb
-
-#tools-all: easylogo env gdb $(VERSION_FILE) $(TIMESTAMP_FILE)
-#	$(MAKE) -C tools HOST_TOOLS_ALL=y
-
-#.PHONY : CHANGELOG
-#CHANGELOG:
-#	git log --no-merges U-Boot-1_1_5.. | \
-#	unexpand -a | sed -e 's/\s\s*$$//' > $@
-
-#include/license.h: tools/bin2header COPYING
-#	cat COPYING | gzip -9 -c | ./tools/bin2header license_gzip > include/license.h
 #########################################################################
-
 unconfig:
-	@rm -f $(obj)include/config.h $(obj)include/config.mk \
-		$(obj)board/*/config.tmp $(obj)board/*/*/config.tmp \
-		$(obj)include/autoconf.mk $(obj)include/autoconf.mk.dep
-
-%_config::	unconfig
-	@$(MKCONFIG) -A $(@:_config=)
-
-#sinclude $(obj).boards.depend
-#$(obj).boards.depend:	boards.cfg
-#	@awk '(NF && $$1 !~ /^#/) { print $$1 ": " $$1 "_config; $$(MAKE)" }' $< > $@
-
-#
-# Functions to generate common board directory names
-#
-#lcname	= $(shell echo $(1) | sed -e 's/\(.*\)_config/\L\1/')
-#ucname	= $(shell echo $(1) | sed -e 's/\(.*\)_config/\U\1/')
+#	@rm -f $(obj)include/config.h $(obj)include/config.mk
+	@rm -f $(obj)board/*/config.tmp $(obj)board/*/*/config.tmp
+	@rm -f $(obj)include/autoconf.mk $(obj)include/autoconf.mk.dep
 
 #########################################################################
-#########################################################################
-
-clean:
+clean:	unconfig
 	@rm -f u-boot.lds					  \
 	@rm -f include/bmp_logo.h
 	@rm -f include/bmp_logo_data.h
@@ -290,22 +247,10 @@ clean:
 		\( -name 'core' -o -name '*.bak' -o -name '*~' -o -name '*.su' \
 		-o -name '*.o'	-o -name '*.a' -o -name '*.exe'	\) -print \
 		| xargs rm -f
-
-# Removes everything not needed for testing u-boot
-tidy:	clean
 	@find $(OBJTREE) -type f \( -name '*.depend*' \) -print | xargs rm -f
-
-clobber:	tidy
-	@find $(OBJTREE) -type f \( -name '*.srec' \
-		-o -name '*.bin' -o -name u-boot.img \) \
-		-print0 | xargs -0 rm -f
 	@rm -f $(OBJS) $(obj)*.bak $(obj)ctags $(obj)etags $(obj)TAGS \
 		$(obj)cscope.* $(obj)*.*~
 	@rm -f $(obj)u-boot $(obj)u-boot.map $(obj)u-boot.hex $(ALL-y)
-#	@rm -fr $(obj)include/asm/proc $(obj)include/asm/arch $(obj)include/asm
-#	@rm -fr $(obj)include/asm/proc $(obj)include/asm/arch
 	@rm -fr $(obj)include/generated
-
-distclean:	clobber unconfig
 
 #########################################################################
