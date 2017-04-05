@@ -145,25 +145,25 @@ $(obj)System.map:	$(obj)u-boot
 # This target actually generates 2 files; autoconf.mk and autoconf.mk.dep.
 # the dep file is only include in this top level makefile to determine when
 # to regenerate the autoconf.mk file.
-$(obj)include/autoconf.mk.dep: $(obj)include/config.h include/common.h
+$(obj)include/autoconf.mk.dep:
 	@echo Generating $@ ; \
 	set -e ; \
 	: Generate the dependancies ; \
 	$(CC) -x c -DDO_DEPS_ONLY -M $(CFLAGS) $(CPPFLAGS) \
 		-MQ $(obj)include/autoconf.mk include/common.h > $@
 
-$(obj)include/autoconf.mk: $(obj)include/config.h
+$(obj)include/autoconf.mk:
 	@echo Generating $@ ; \
 	set -e ; \
 	: Extract the config macros ; \
 	$(CPP) $(CFLAGS) -DDO_DEPS_ONLY -dM include/common.h | \
-		sed -n -f tools/scripts/define2mk.sed > $@.tmp && \
+		sed -n -f tools/define2mk.sed > $@.tmp && \
 	mv $@.tmp $@
 
 $(obj)include/generated/generic-asm-offsets.h:	$(obj)include/autoconf.mk.dep \
 	$(obj)lib/asm-offsets.s
 	@echo Generating $@
-	tools/scripts/make-asm-offsets $(obj)lib/asm-offsets.s $@
+	tools/make-asm-offsets $(obj)lib/asm-offsets.s $@
 
 $(obj)lib/asm-offsets.s:	$(obj)include/autoconf.mk.dep \
 	$(src)lib/asm-offsets.c
@@ -175,7 +175,7 @@ $(obj)lib/asm-offsets.s:	$(obj)include/autoconf.mk.dep \
 $(obj)include/generated/asm-offsets.h:	$(obj)include/autoconf.mk.dep \
 	$(obj)$(CPUDIR)/$(SOC)/asm-offsets.s
 	@echo Generating $@
-	tools/scripts/make-asm-offsets $(obj)$(CPUDIR)/$(SOC)/asm-offsets.s $@
+	tools/make-asm-offsets $(obj)$(CPUDIR)/$(SOC)/asm-offsets.s $@
 
 $(obj)$(CPUDIR)/$(SOC)/asm-offsets.s:	$(obj)include/autoconf.mk.dep
 	@mkdir -p $(obj)$(CPUDIR)/$(SOC)
