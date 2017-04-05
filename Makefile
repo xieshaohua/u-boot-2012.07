@@ -8,12 +8,9 @@ export	TOPDIR SRCTREE OBJTREE
 # $(obj) and (src) are defined in config.mk but here in main Makefile
 # we also need them before config.mk is included which is the case for
 # some targets like unconfig, clean, clobber, distclean, etc.
-obj :=
-src :=
-export obj src
-
-# Make sure CDPATH settings don't interfere
-#unexport CDPATH
+#obj :=
+#src :=
+#export obj src
 
 #########################################################################
 
@@ -23,23 +20,16 @@ export obj src
 # to all top level build files.  We need the dummy all: target to prevent the
 # dependency target in autoconf.mk.dep from being the default.
 all:
-sinclude $(obj)include/autoconf.mk.dep
-sinclude $(obj)include/autoconf.mk
+sinclude include/autoconf.mk.dep
+sinclude include/autoconf.mk
 
 # load other configuration
 include $(TOPDIR)/config.mk
-
-# If board code explicitly specified LDSCRIPT or CONFIG_SYS_LDSCRIPT, use
-# that (or fail if absent).  Otherwise, search for a linker script in a
-# standard location.
-LDSCRIPT := $(TOPDIR)/arch/$(ARCH)/cpu/u-boot.lds
 
 #########################################################################
 # U-Boot objects....order is important (i.e. start must be first)
 
 OBJS  = $(CPUDIR)/start.o
-
-OBJS := $(addprefix $(obj),$(OBJS))
 
 LIBS  = lib/libgeneric.o
 LIBS += lib/lzma/liblzma.o
@@ -59,11 +49,10 @@ LIBS += drivers/rtc/librtc.o
 LIBS += drivers/serial/libserial.o
 LIBS += common/libcommon.o
 
-LIBS := $(addprefix $(obj),$(sort $(LIBS)))
+LIBS := $(sort $(LIBS))
 .PHONY : $(LIBS)
 
 LIBBOARD = board/$(BOARDDIR)/lib$(BOARD).o
-LIBBOARD := $(addprefix $(obj),$(LIBBOARD))
 
 # Add GCC lib
 PLATFORM_LIBGCC := -L $(shell dirname `$(CC) $(CFLAGS) -print-libgcc-file-name`) -lgcc
@@ -103,7 +92,7 @@ GEN_UBOOT = \
 			-Map u-boot.map -o u-boot
 
 $(obj)u-boot:	depend \
-		$(OBJS) $(LIBBOARD) $(LIBS) $(LDSCRIPT) $(obj)u-boot.lds
+		$(OBJS) $(LIBBOARD) $(LIBS) $(obj)u-boot.lds
 		$(GEN_UBOOT)
 
 $(OBJS):	depend
@@ -115,19 +104,13 @@ $(LIBS):	depend
 $(LIBBOARD):	depend $(LIBS)
 		$(MAKE) -C $(dir $(subst $(obj),,$@))
 
-$(LDSCRIPT):	depend
-		$(MAKE) -C $(dir $@) $(notdir $@)
-
-$(obj)u-boot.lds: $(LDSCRIPT)
-		$(CPP) $(CPPFLAGS) $(LDPPFLAGS) -ansi -D__ASSEMBLY__ -P - <$^ >$@
-
 spl:	depend
 		$(MAKE) -C spl all
 
 $(obj)u-boot-spl.bin:	spl $(obj)u-boot.bin
 		cat $(obj)spl/spl-4k.bin $(obj)u-boot.bin > $(obj)u-boot-spl.bin
 
-depend dep:	$(obj)include/autoconf.mk \
+depend:	$(obj)include/autoconf.mk \
 		$(obj)include/generated/generic-asm-offsets.h \
 		$(obj)include/generated/asm-offsets.h
 		for dir in $(CPUDIR) ; do \
@@ -188,28 +171,16 @@ $(obj)$(CPUDIR)/$(SOC)/asm-offsets.s:	$(obj)include/autoconf.mk.dep
 	fi
 
 #########################################################################
-unconfig:
-	@rm -f $(obj)board/*/config.tmp $(obj)board/*/*/config.tmp
-	@rm -f $(obj)include/autoconf.mk $(obj)include/autoconf.mk.dep
-
-#########################################################################
-clean:	unconfig
-	@rm -f u-boot.lds					  \
-	@rm -f include/bmp_logo.h
-	@rm -f include/bmp_logo_data.h
+clean:
 	@rm -f lib/asm-offsets.s
 	@rm -f include/generated/asm-offsets.h
 	@rm -f $(CPUDIR)/$(SOC)/asm-offsets.s
 	@rm -f spl/spl spl/spl.map
-	@rm -f $(obj)MLO
-	@find $(OBJTREE) -type f \
-		\( -name 'core' -o -name '*.bak' -o -name '*~' -o -name '*.su' \
-		-o -name '*.o'	-o -name '*.a' -o -name '*.exe'	\) -print \
-		| xargs rm -f
+	@find $(OBJTREE) -type f \( -name '*.o'	-o -name '*.a' \) -print | xargs rm -f
 	@find $(OBJTREE) -type f \( -name '*.depend*' \) -print | xargs rm -f
-	@rm -f $(OBJS) $(obj)*.bak $(obj)ctags $(obj)etags $(obj)TAGS \
-		$(obj)cscope.* $(obj)*.*~
 	@rm -f $(obj)u-boot $(obj)u-boot.map $(obj)u-boot.hex $(ALL-y)
 	@rm -rf $(obj)include/generated
+	@rm -f $(obj)include/autoconf.mk $(obj)include/autoconf.mk.dep
+	@rm -f spl/spl.bin spl/spl-4k.bin
 
 #########################################################################
