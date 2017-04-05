@@ -2,20 +2,9 @@
 OBJTREE		:= $(CURDIR)
 SRCTREE		:= $(CURDIR)
 TOPDIR		:= $(CURDIR)
-LNDIR		:= $(OBJTREE)
 export	TOPDIR SRCTREE OBJTREE
 
-# $(obj) and (src) are defined in config.mk but here in main Makefile
-# we also need them before config.mk is included which is the case for
-# some targets like unconfig, clean, clobber, distclean, etc.
-#obj :=
-#src :=
-#export obj src
-
 #########################################################################
-
-#ifeq ($(obj)include/config.mk,$(wildcard $(obj)include/config.mk))
-
 # Include autoconf.mk before config.mk so that the config options are available
 # to all top level build files.  We need the dummy all: target to prevent the
 # dependency target in autoconf.mk.dep from being the default.
@@ -52,7 +41,7 @@ LIBS += common/libcommon.o
 LIBS := $(sort $(LIBS))
 .PHONY : $(LIBS)
 
-LIBBOARD = board/$(BOARDDIR)/lib$(BOARD).o
+LIBBOARD = board/$(BOARD)/lib$(BOARD).o
 
 # Add GCC lib
 PLATFORM_LIBGCC := -L $(shell dirname `$(CC) $(CFLAGS) -print-libgcc-file-name`) -lgcc
@@ -87,7 +76,7 @@ $(obj)u-boot.bin:	$(obj)u-boot
 GEN_UBOOT = \
 		UNDEF_SYM=`$(OBJDUMP) -x $(LIBBOARD) $(LIBS) | \
 		sed  -n -e 's/.*\($(SYM_PREFIX)__u_boot_cmd_.*\)/-u\1/p'|sort|uniq`;\
-		cd $(LNDIR) && $(LD) $(LDFLAGS) $(LDFLAGS_$(@F)) $$UNDEF_SYM $(__OBJS) \
+		$(LD) $(LDFLAGS) $(LDFLAGS_$(@F)) $$UNDEF_SYM $(__OBJS) \
 			--start-group $(__LIBS) --end-group $(PLATFORM_LIBS) \
 			-Map u-boot.map -o u-boot
 

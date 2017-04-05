@@ -81,8 +81,7 @@ sinclude $(OBJTREE)/include/autoconf.mk
 ARCH   = arm
 CPU    = arm920t
 BOARD  = smdk2440
-VENDOR = samsung
-SOC    = s3c24x0
+SOC    = s3c2440
 
 # Some architecture config.mk files need to know what CPUDIR is set to,
 # so calculate CPUDIR before including ARCH/SOC/CPU config.mk files.
@@ -97,8 +96,7 @@ endif
 sinclude $(TOPDIR)/arch/$(ARCH)/config.mk	# include architecture dependend rules
 sinclude $(TOPDIR)/$(CPUDIR)/config.mk		# include  CPU	specific rules
 sinclude $(TOPDIR)/$(CPUDIR)/$(SOC)/config.mk	# include  SoC	specific rules
-BOARDDIR = $(VENDOR)/$(BOARD)
-sinclude $(TOPDIR)/board/$(BOARDDIR)/config.mk	# include board specific rules
+sinclude $(TOPDIR)/board/$(BOARD)/config.mk	# include board specific rules
 
 #########################################################################
 
