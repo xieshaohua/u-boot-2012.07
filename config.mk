@@ -51,8 +51,7 @@ cc-option-sys = $(shell mkdir -p $(dir $(CC_TEST_OFILE)); \
 		echo 'CC_OPTIONS += $(strip $1)' >> $(CC_OPTIONS_CACHE_FILE); \
 		echo "$(1)"; fi)
 
-cc-option = $(strip $(if $(findstring $1,$(CC_OPTIONS)),$1,\
-		$(if $(call cc-option-sys,$1),$1,$2)))
+cc-option = $(strip $(if $(findstring $1,$(CC_OPTIONS)),$1,$(if $(call cc-option-sys,$1),$1,$2)))
 
 # cc-version
 # Usage gcc-ver := $(call cc-version)
@@ -93,10 +92,64 @@ $(info "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 CPUDIR=arch/$(ARCH)/cpu
 endif
 
-sinclude $(TOPDIR)/arch/$(ARCH)/config.mk	# include architecture dependend rules
+#########################################################################
+
+##### include architecture dependend rules
+CROSS_COMPILE ?= arm-linux-
+PLATFORM_CPPFLAGS += -DCONFIG_ARM -D__ARM__
+
+# Choose between ARM/Thumb instruction sets
+PF_CPPFLAGS_ARM := $(call cc-option,-marm,) $(call cc-option,-mno-thumb-interwork,)
+
+# Try if EABI is supported, else fall back to old API,
+# i. e. for example:
+# - with ELDK 4.2 (EABI supported), use:
+#	-mabi=aapcs-linux
+# - with ELDK 4.1 (gcc 4.x, no EABI), use:
+#	-mabi=apcs-gnu
+# - with ELDK 3.1 (gcc 3.x), use:
+#	-mapcs-32
+PF_CPPFLAGS_ABI := $(call cc-option,\
+			-mabi=aapcs-linux,\
+			$(call cc-option,\
+				-mapcs-32,\
+				$(call cc-option,\
+					-mabi=apcs-gnu,\
+				)\
+			)\
+		)
+PLATFORM_CPPFLAGS += $(PF_CPPFLAGS_ARM) $(PF_CPPFLAGS_ABI)
+
+# For EABI, make sure to provide raise()
+ifneq (,$(findstring -mabi=aapcs-linux,$(PLATFORM_CPPFLAGS)))
+# This file is parsed many times, so the string may get added multiple
+# times. Also, the prefix needs to be different based on whether
+# CONFIG_SPL_BUILD is defined or not. 'filter-out' the existing entry
+# before adding the correct one.
+PLATFORM_LIBS := $(OBJTREE)/arch/arm/lib/eabi_compat.o \
+	$(filter-out %/arch/arm/lib/eabi_compat.o, $(PLATFORM_LIBS))
+endif
+
+# needed for relocation
+ifndef CONFIG_NAND_SPL
+LDFLAGS_u-boot += -pie
+endif
+
 sinclude $(TOPDIR)/$(CPUDIR)/config.mk		# include  CPU	specific rules
-sinclude $(TOPDIR)/$(CPUDIR)/$(SOC)/config.mk	# include  SoC	specific rules
-sinclude $(TOPDIR)/board/$(BOARD)/config.mk	# include board specific rules
+
+##### include  SoC	specific rules
+PLATFORM_RELFLAGS += -fno-common -ffixed-r8 -msoft-float
+PLATFORM_CPPFLAGS += -march=armv4
+PF_RELFLAGS_SLB_AT := $(call cc-option,-mshort-load-bytes,$(call cc-option,-malignment-traps,))
+PLATFORM_RELFLAGS += $(PF_RELFLAGS_SLB_AT)
+
+# include board specific rules
+ifndef CONFIG_NAND_SPL
+CONFIG_SYS_TEXT_BASE = 0x33F00000
+#CONFIG_SYS_TEXT_BASE = 0
+else
+CONFIG_SYS_TEXT_BASE = 0
+endif
 
 #########################################################################
 

@@ -2,7 +2,6 @@
 CONFIG_NAND_SPL	= y
 
 include $(TOPDIR)/config.mk
-include $(TOPDIR)/spl/config.mk
 
 splobj	:= $(OBJTREE)/spl/
 
@@ -18,14 +17,13 @@ COBJS	= nand_boot.o s3c2440_nand.o smdk2440_nand_spl.o nand_base.o
 SRCS	:= $(addprefix $(obj),$(SOBJS:.o=.S) $(COBJS:.o=.c))
 OBJS	:= $(addprefix $(obj),$(SOBJS) $(COBJS))
 __OBJS	:= $(SOBJS) $(COBJS)
-#LNDIR	:= $(splobj)
 
 ALL	= $(splobj)spl $(splobj)spl.bin $(splobj)spl-4k.bin
 
 all:	$(obj).depend $(ALL)
 
 $(splobj)spl-4k.bin: $(splobj)spl
-	$(OBJCOPY) ${OBJCFLAGS} --pad-to=$(PAD_TO) -O binary $< $@
+	$(OBJCOPY) ${OBJCFLAGS} --pad-to=4096 -O binary $< $@
 
 $(splobj)spl.bin:	$(splobj)spl
 	$(OBJCOPY) ${OBJCFLAGS} -O binary $< $@
@@ -34,9 +32,6 @@ $(splobj)spl:	$(OBJS) $(LDSCRIPT)
 	cd $(splobj) && $(LD) $(LDFLAGS) $(__OBJS) \
 		-Map $(splobj)spl.map \
 		-o $(splobj)spl
-
-#$(splobj)u-boot.lds: $(LDSCRIPT)
-#	$(CPP) $(CPPFLAGS) $(LDPPFLAGS) -ansi -D__ASSEMBLY__ -P - <$^ >$@
 
 #########################################################################
 
