@@ -57,74 +57,62 @@ LDPPFLAGS += \
 	$(shell $(LD) --version | \
 	  sed -ne 's/GNU ld version \([0-9][0-9]*\)\.\([0-9][0-9]*\).*/-DLD_MAJOR=\1 -DLD_MINOR=\2/p')
 
-__OBJS := $(subst $(obj),,$(OBJS))
-__LIBS := $(subst $(obj),,$(LIBS)) $(subst $(obj),,$(LIBBOARD))
-
 #########################################################################
 #########################################################################
+all:	u-boot.bin u-boot-spl.bin System.map
 
-# Always append ALL so that arch config.mk's can add custom ones
-ALL-y += $(obj)u-boot.bin $(obj)System.map
-
-ALL-$(CONFIG_NAND_U_BOOT) += $(obj)u-boot-spl.bin
-
-all:		$(ALL-y)
-
-$(obj)u-boot.bin:	$(obj)u-boot
+u-boot.bin:	u-boot
 		$(OBJCOPY) ${OBJCFLAGS} -O binary $< $@
 
 GEN_UBOOT = \
 		UNDEF_SYM=`$(OBJDUMP) -x $(LIBBOARD) $(LIBS) | \
 		sed  -n -e 's/.*\($(SYM_PREFIX)__u_boot_cmd_.*\)/-u\1/p'|sort|uniq`;\
-		$(LD) $(LDFLAGS) $(LDFLAGS_$(@F)) $$UNDEF_SYM $(__OBJS) \
-			--start-group $(__LIBS) --end-group $(PLATFORM_LIBS) \
+		$(LD) $(LDFLAGS) $(LDFLAGS_$(@F)) $$UNDEF_SYM $(OBJS) \
+			--start-group $(LIBS) $(LIBBOARD) --end-group $(PLATFORM_LIBS) \
 			-Map u-boot.map -o u-boot
 
-$(obj)u-boot:	depend \
-		$(OBJS) $(LIBBOARD) $(LIBS) $(obj)u-boot.lds
+u-boot:	depend $(OBJS) $(LIBBOARD) $(LIBS) u-boot.lds
 		$(GEN_UBOOT)
 
 $(OBJS):	depend
 		$(MAKE) -C $(CPUDIR) $(notdir $@)
 
 $(LIBS):	depend
-		$(MAKE) -C $(dir $(subst $(obj),,$@))
+		$(MAKE) -C $(dir $@)
 
 $(LIBBOARD):	depend $(LIBS)
-		$(MAKE) -C $(dir $(subst $(obj),,$@))
+		$(MAKE) -C $(dir $@)
 
 spl:	depend
 		$(MAKE) -C spl all
 
-$(obj)u-boot-spl.bin:	spl $(obj)u-boot.bin
-		cat $(obj)spl/spl-4k.bin $(obj)u-boot.bin > $(obj)u-boot-spl.bin
+u-boot-spl.bin:	spl u-boot.bin
+		cat spl/spl-4k.bin u-boot.bin > u-boot-spl.bin
 
-depend:	$(obj)include/autoconf.mk \
-		$(obj)include/generated/generic-asm-offsets.h \
-		$(obj)include/generated/asm-offsets.h
-		for dir in $(CPUDIR) ; do \
-			$(MAKE) -C $$dir _depend ; done
+depend:	include/autoconf.mk \
+		include/generated/generic-asm-offsets.h \
+		include/generated/asm-offsets.h
 
 SYSTEM_MAP = \
 		$(NM) $1 | \
 		grep -v '\(compiled\)\|\(\.o$$\)\|\( [aUw] \)\|\(\.\.ng$$\)\|\(LASH[RL]DI\)' | \
 		LC_ALL=C sort
-$(obj)System.map:	$(obj)u-boot
-		@$(call SYSTEM_MAP,$<) > $(obj)System.map
+System.map:	u-boot
+		@$(call SYSTEM_MAP,$<) > System.map
 
 # Auto-generate the autoconf.mk file (which is included by all makefiles)
 #
 # This target actually generates 2 files; autoconf.mk and autoconf.mk.dep.
 # the dep file is only include in this top level makefile to determine when
 # to regenerate the autoconf.mk file.
-$(obj)include/autoconf.mk.dep:
+include/autoconf.mk.dep:
 	@echo Generating $@ ; \
 	set -e ; \
 	: Generate the dependancies ; \
 	$(CC) -x c -DDO_DEPS_ONLY -M $(CFLAGS) $(CPPFLAGS) \
-		-MQ $(obj)include/autoconf.mk include/common.h > $@
+		-MQ include/autoconf.mk include/common.h > $@
 
-$(obj)include/autoconf.mk:
+include/autoconf.mk:
 	@echo Generating $@ ; \
 	set -e ; \
 	: Extract the config macros ; \
@@ -132,29 +120,29 @@ $(obj)include/autoconf.mk:
 		sed -n -f tools/define2mk.sed > $@.tmp && \
 	mv $@.tmp $@
 
-$(obj)include/generated/generic-asm-offsets.h:	$(obj)include/autoconf.mk.dep \
-	$(obj)lib/asm-offsets.s
+include/generated/generic-asm-offsets.h:	include/autoconf.mk.dep \
+	lib/asm-offsets.s
 	@echo Generating $@
-	tools/make-asm-offsets $(obj)lib/asm-offsets.s $@
+	tools/make-asm-offsets lib/asm-offsets.s $@
 
-$(obj)lib/asm-offsets.s:	$(obj)include/autoconf.mk.dep \
-	$(src)lib/asm-offsets.c
-	@mkdir -p $(obj)lib
+lib/asm-offsets.s:	include/autoconf.mk.dep \
+	lib/asm-offsets.c
+	@mkdir -p lib
 	$(CC) -DDO_DEPS_ONLY \
 		$(CFLAGS) $(CFLAGS_$(BCURDIR)/$(@F)) $(CFLAGS_$(BCURDIR)) \
-		-o $@ $(src)lib/asm-offsets.c -c -S
+		-o $@ lib/asm-offsets.c -c -S
 
-$(obj)include/generated/asm-offsets.h:	$(obj)include/autoconf.mk.dep \
-	$(obj)$(CPUDIR)/$(SOC)/asm-offsets.s
+include/generated/asm-offsets.h:	include/autoconf.mk.dep \
+	$(CPUDIR)/$(SOC)/asm-offsets.s
 	@echo Generating $@
-	tools/make-asm-offsets $(obj)$(CPUDIR)/$(SOC)/asm-offsets.s $@
+	tools/make-asm-offsets $(CPUDIR)/$(SOC)/asm-offsets.s $@
 
-$(obj)$(CPUDIR)/$(SOC)/asm-offsets.s:	$(obj)include/autoconf.mk.dep
-	@mkdir -p $(obj)$(CPUDIR)/$(SOC)
-	if [ -f $(src)$(CPUDIR)/$(SOC)/asm-offsets.c ];then \
+$(CPUDIR)/$(SOC)/asm-offsets.s:	include/autoconf.mk.dep
+	@mkdir -p $(CPUDIR)/$(SOC)
+	if [ -f $(CPUDIR)/$(SOC)/asm-offsets.c ];then \
 		$(CC) -DDO_DEPS_ONLY \
 		$(CFLAGS) $(CFLAGS_$(BCURDIR)/$(@F)) $(CFLAGS_$(BCURDIR)) \
-			-o $@ $(src)$(CPUDIR)/$(SOC)/asm-offsets.c -c -S; \
+			-o $@ $(CPUDIR)/$(SOC)/asm-offsets.c -c -S; \
 	else \
 		touch $@; \
 	fi
@@ -167,9 +155,9 @@ clean:
 	@rm -f spl/spl spl/spl.map
 	@find $(OBJTREE) -type f \( -name '*.o'	-o -name '*.a' \) -print | xargs rm -f
 	@find $(OBJTREE) -type f \( -name '*.depend*' \) -print | xargs rm -f
-	@rm -f $(obj)u-boot $(obj)u-boot.map $(obj)u-boot.hex $(ALL-y)
-	@rm -rf $(obj)include/generated
-	@rm -f $(obj)include/autoconf.mk $(obj)include/autoconf.mk.dep
+	@rm -f u-boot u-boot.bin u-boot-spl.bin u-boot.map System.map
+	@rm -rf include/generated
+	@rm -f include/autoconf.mk include/autoconf.mk.dep
 	@rm -f spl/spl.bin spl/spl-4k.bin
 
 #########################################################################

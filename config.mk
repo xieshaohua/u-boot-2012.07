@@ -1,9 +1,4 @@
 #########################################################################
-
-dir :=
-obj :=
-src :=
-
 PLATFORM_RELFLAGS =
 PLATFORM_CPPFLAGS =
 PLATFORM_LDFLAGS =
@@ -196,12 +191,12 @@ AFLAGS := $(AFLAGS_DEBUG) -D__ASSEMBLY__ $(CPPFLAGS)
 LDFLAGS += $(PLATFORM_LDFLAGS)
 LDFLAGS_FINAL += -Bstatic
 
-LDFLAGS_u-boot += -T $(obj)u-boot.lds $(LDFLAGS_FINAL)
+LDFLAGS_u-boot += -T u-boot.lds $(LDFLAGS_FINAL)
 ifneq ($(CONFIG_SYS_TEXT_BASE),)
 LDFLAGS_u-boot += -Ttext $(CONFIG_SYS_TEXT_BASE)
 endif
 
-LDFLAGS_u-boot-spl += -T $(obj)u-boot-spl.lds $(LDFLAGS_FINAL)
+LDFLAGS_u-boot-spl += -T u-boot-spl.lds $(LDFLAGS_FINAL)
 
 #########################################################################
 
@@ -212,7 +207,7 @@ export	CONFIG_SYS_TEXT_BASE PLATFORM_CPPFLAGS PLATFORM_RELFLAGS CPPFLAGS CFLAGS 
 #########################################################################
 
 # Allow boards to use custom optimize flags on a per dir/file basis
-BCURDIR = $(subst $(SRCTREE)/,,$(CURDIR:$(obj)%=%))
+BCURDIR = $(subst $(SRCTREE)/,,$(CURDIR:%=%))
 ALL_AFLAGS = $(AFLAGS) $(AFLAGS_$(BCURDIR)/$(@F)) $(AFLAGS_$(BCURDIR))
 ALL_CFLAGS = $(CFLAGS) $(CFLAGS_$(BCURDIR)/$(@F)) $(CFLAGS_$(BCURDIR))
 EXTRA_CPPFLAGS = $(CPPFLAGS_$(BCURDIR)/$(@F)) $(CPPFLAGS_$(BCURDIR))
@@ -222,15 +217,15 @@ ALL_CFLAGS += $(EXTRA_CPPFLAGS)
 # See rules.mk
 EXTRA_CPPFLAGS_DEP = $(CPPFLAGS_$(BCURDIR)/$(addsuffix .o,$(basename $<))) \
 		$(CPPFLAGS_$(BCURDIR))
-$(obj)%.s:	%.S
+%.s:	%.S
 	$(CPP) $(ALL_AFLAGS) -o $@ $<
-$(obj)%.o:	%.S
+%.o:	%.S
 	$(CC)  $(ALL_AFLAGS) -o $@ $< -c
-$(obj)%.o:	%.c
+%.o:	%.c
 	$(CC)  $(ALL_CFLAGS) -o $@ $< -c
-$(obj)%.i:	%.c
+%.i:	%.c
 	$(CPP) $(ALL_CFLAGS) -o $@ $< -c
-$(obj)%.s:	%.c
+%.s:	%.c
 	$(CC)  $(ALL_CFLAGS) -o $@ $< -c -S
 
 #########################################################################

@@ -23,7 +23,7 @@
 
 include $(TOPDIR)/config.mk
 
-LIB	= $(obj)libjffs2.o
+LIB	= libjffs2.o
 
 AOBJS	=
 ifdef CONFIG_CMD_JFFS2
@@ -52,6 +52,6 @@ $(LIB):	$(obj).depend $(OBJS)
 # defines $(obj).depend target
 include $(SRCTREE)/rules.mk
 
-sinclude $(obj).depend
+sinclude .depend
 
 #########################################################################

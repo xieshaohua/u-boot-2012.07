@@ -19,7 +19,7 @@
 #EXTRA_COMPILE_FLAGS = -DYAFFS_IGNORE_TAGS_ECC
 include $(TOPDIR)/config.mk
 
-LIB = $(obj)libyaffs2.o
+LIB = libyaffs2.o
 
 COBJS-$(CONFIG_YAFFS2) := \
 	yaffscfg.o yaffs_ecc.o yaffsfs.o yaffs_guts.o yaffs_packedtags1.o \
@@ -28,21 +28,20 @@ COBJS-$(CONFIG_YAFFS2) := \
 	yaffs_mtdif2.o
 
 SRCS    := $(COBJS-y:.o=.c)
-OBJS    := $(addprefix $(obj),$(COBJS-y))
+OBJS    := $(COBJS-y)
 
 # -DCONFIG_YAFFS_NO_YAFFS1
 CFLAGS +=    -DCONFIG_YAFFS_DIRECT -DCONFIG_YAFFS_SHORT_NAMES_IN_RAM -DCONFIG_YAFFS_YAFFS2 -DLINUX_VERSION_CODE=0x20622
 
 all:  $(LIB)
 
-$(LIB): $(obj).depend $(OBJS)
+$(LIB): .depend $(OBJS)
 	$(call cmd_link_o_target, $(OBJS))
 
 #########################################################################
 
-# defines $(obj).depend target
 include $(SRCTREE)/rules.mk
 
-sinclude $(obj).depend
+sinclude .depend
 
 #########################################################################
