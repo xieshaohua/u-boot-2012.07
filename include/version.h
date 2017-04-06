@@ -24,7 +24,7 @@
 #ifndef	__VERSION_H__
 #define	__VERSION_H__
 
-#define U_BOOT_VERSION_STRING "u-boot-2012.07"
+#define U_BOOT_VERSION_STRING "### simpleboot-2017.04 ###"
 
 #ifndef __ASSEMBLY__
 extern const char version_string[];
