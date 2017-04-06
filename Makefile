@@ -59,7 +59,7 @@ LDPPFLAGS += \
 all:	u-boot.bin u-boot-spl.bin System.map
 
 u-boot.bin:	u-boot
-		$(OBJCOPY) ${OBJCFLAGS} -O binary $< $@
+		$(OBJCOPY) --gap-fill=0xff -O binary $< $@
 
 GEN_UBOOT = \
 		UNDEF_SYM=`$(OBJDUMP) -x $(LIBBOARD) $(LIBS) | \
@@ -107,10 +107,8 @@ include/autoconf.mk:
 #########################################################################
 clean:
 	@rm -f spl/spl spl/spl.map
-	@find $(OBJTREE) -type f \( -name '*.o'	-o -name '*.a' \) -print | xargs rm -f
-	@find $(OBJTREE) -type f \( -name '*.depend*' \) -print | xargs rm -f
+	@find $(TOPDIR) -type f -name '*.o' -print | xargs rm -f
 	@rm -f u-boot u-boot.bin u-boot-spl.bin u-boot.map System.map
-	@rm -rf include/generated
 	@rm -f include/autoconf.mk
 	@rm -f spl/spl.bin spl/spl-4k.bin
 

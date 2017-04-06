@@ -7,7 +7,7 @@ splobj	:= $(OBJTREE)/spl/
 
 LDSCRIPT= $(splobj)spl.lds
 LDFLAGS := -T $(LDSCRIPT) -Ttext $(CONFIG_SYS_TEXT_BASE) $(LDFLAGS) \
-		$(LDFLAGS_FINAL) -gc-sections
+		-Bstatic -gc-sections
 AFLAGS	+= -DCONFIG_NAND_SPL
 CFLAGS	+= -DCONFIG_NAND_SPL -ffunction-sections
 
@@ -23,10 +23,10 @@ ALL	= $(splobj)spl $(splobj)spl.bin $(splobj)spl-4k.bin
 all:	$(ALL)
 
 $(splobj)spl-4k.bin: $(splobj)spl
-	$(OBJCOPY) ${OBJCFLAGS} --pad-to=4096 -O binary $< $@
+	$(OBJCOPY) --gap-fill=0xff --pad-to=4096 -O binary $< $@
 
 $(splobj)spl.bin:	$(splobj)spl
-	$(OBJCOPY) ${OBJCFLAGS} -O binary $< $@
+	$(OBJCOPY) --gap-fill=0xff -O binary $< $@
 
 $(splobj)spl:	$(OBJS) $(LDSCRIPT)
 	cd $(splobj) && $(LD) $(LDFLAGS) $(__OBJS) \
