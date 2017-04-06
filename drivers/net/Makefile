@@ -28,19 +28,15 @@ LIB	:= $(obj)libnet.o
 COBJS-$(CONFIG_DRIVER_DM9000) += dm9000x.o
 
 COBJS	:= $(sort $(COBJS-y))
-SRCS	:= $(COBJS:.o=.c)
-OBJS	:= $(addprefix $(obj),$(COBJS))
 
-all:	$(LIB)
-
-$(LIB):	$(obj).depend $(OBJS)
-	$(call cmd_link_o_target, $(OBJS))
+$(LIB):	$(COBJS)
+	$(call cmd_link_o_target, $(COBJS))
 
 #########################################################################
 
 # defines $(obj).depend target
-include $(SRCTREE)/rules.mk
+#include $(SRCTREE)/rules.mk
 
-sinclude $(obj).depend
+#sinclude $(obj).depend
 
 #########################################################################

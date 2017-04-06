@@ -1,9 +1,4 @@
 #########################################################################
-PLATFORM_RELFLAGS =
-PLATFORM_CPPFLAGS =
-PLATFORM_LDFLAGS =
-
-#########################################################################
 
 HOSTCFLAGS	= -Wall -Wstrict-prototypes -O2 -fomit-frame-pointer
 
@@ -50,6 +45,8 @@ cc-option = $(strip $(if $(findstring $1,$(CC_OPTIONS)),$1,$(if $(call cc-option
 # Usage gcc-ver := $(call cc-version)
 cc-version = $(shell $(SHELL) $(SRCTREE)/tools/gcc-version.sh $(CC))
 
+CROSS_COMPILE ?= arm-linux-
+
 #
 # Include the make variables (CC, etc...)
 #
@@ -88,7 +85,6 @@ endif
 #########################################################################
 
 ##### include architecture dependend rules
-CROSS_COMPILE ?= arm-linux-
 PLATFORM_CPPFLAGS += -DCONFIG_ARM -D__ARM__
 
 # Choose between ARM/Thumb instruction sets
@@ -188,7 +184,6 @@ AFLAGS_DEBUG :=
 
 AFLAGS := $(AFLAGS_DEBUG) -D__ASSEMBLY__ $(CPPFLAGS)
 
-LDFLAGS += $(PLATFORM_LDFLAGS)
 LDFLAGS_FINAL += -Bstatic
 
 LDFLAGS_u-boot += -T u-boot.lds $(LDFLAGS_FINAL)

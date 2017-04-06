@@ -23,8 +23,6 @@
 
 include $(TOPDIR)/config.mk
 
-# CFLAGS += -DDEBUG
-
 LIB	= libnet.o
 
 COBJS-$(CONFIG_CMD_NET)  += arp.o
@@ -42,16 +40,14 @@ COBJS-$(CONFIG_CMD_NET)  += tftp.o
 
 COBJS	:= $(sort $(COBJS-y))
 
-all:	$(LIB)
-
-$(LIB):	$(obj).depend $(COBJS)
+$(LIB):	$(COBJS)
 	$(call cmd_link_o_target, $(COBJS))
 
 #########################################################################
 
 # defines $(obj).depend target
-include $(SRCTREE)/rules.mk
+#include $(SRCTREE)/rules.mk
 
-sinclude .depend
+#sinclude .depend
 
 #########################################################################

@@ -1,25 +1,3 @@
-#
-# (C) Copyright 2004-2006
-# Wolfgang Denk, DENX Software Engineering, wd@denx.de.
-#
-# See file CREDITS for list of people who contributed to this
-# project.
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License as
-# published by the Free Software Foundation; either version 2 of
-# the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston,
-# MA 02111-1307 USA
-#
 
 include $(TOPDIR)/config.mk
 
@@ -45,10 +23,6 @@ COBJS-y += cmd_version.o
 COBJS-y += env_common.o
 COBJS-$(CONFIG_ENV_IS_IN_DATAFLASH) += env_dataflash.o
 COBJS-$(CONFIG_ENV_IS_IN_EEPROM) += env_eeprom.o
-XCOBJS-$(CONFIG_ENV_IS_EMBEDDED) += env_embedded.o
-COBJS-$(CONFIG_ENV_IS_IN_EEPROM) += env_embedded.o
-XCOBJS-$(CONFIG_ENV_IS_IN_FLASH) += env_embedded.o
-COBJS-$(CONFIG_ENV_IS_IN_NVRAM) += env_embedded.o
 COBJS-$(CONFIG_ENV_IS_IN_FLASH) += env_flash.o
 COBJS-$(CONFIG_ENV_IS_IN_MMC) += env_mmc.o
 COBJS-$(CONFIG_ENV_IS_IN_FAT) += env_fat.o
@@ -163,33 +137,16 @@ COBJS-y += image.o
 COBJS-y += memsize.o
 COBJS-y += stdio.o
 
-
 COBJS	:= $(sort $(COBJS-y))
-XCOBJS	:= $(sort $(XCOBJS-y))
-SRCS	:= $(COBJS:.o=.c) $(XCOBJS:.o=.c)
-OBJS	:= $(addprefix $(obj),$(COBJS))
-XOBJS	:= $(addprefix $(obj),$(XCOBJS))
 
-CPPFLAGS += -I..
-
-all:	$(LIB) $(XOBJS)
-
-$(LIB): $(obj).depend $(OBJS)
-	$(call cmd_link_o_target, $(OBJS))
-
-$(obj)env_embedded.o: $(src)env_embedded.c $(obj)../tools/envcrc
-	$(CC) $(AFLAGS) -Wa,--no-warn \
-		-DENV_CRC=$(shell $(obj)../tools/envcrc) \
-		-c -o $@ $(src)env_embedded.c
-
-$(obj)../tools/envcrc:
-	$(MAKE) -C ../tools
+$(LIB): $(COBJS)
+	$(call cmd_link_o_target, $(COBJS))
 
 #########################################################################
 
 # defines $(obj).depend target
-include $(SRCTREE)/rules.mk
+#include $(SRCTREE)/rules.mk
 
-sinclude $(obj).depend
+#sinclude $(obj).depend
 
 #########################################################################

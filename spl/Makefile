@@ -20,7 +20,7 @@ __OBJS	:= $(SOBJS) $(COBJS)
 
 ALL	= $(splobj)spl $(splobj)spl.bin $(splobj)spl-4k.bin
 
-all:	$(obj).depend $(ALL)
+all:	$(ALL)
 
 $(splobj)spl-4k.bin: $(splobj)spl
 	$(OBJCOPY) ${OBJCFLAGS} --pad-to=4096 -O binary $< $@
@@ -35,15 +35,15 @@ $(splobj)spl:	$(OBJS) $(LDSCRIPT)
 
 #########################################################################
 
-$(obj)%.o:	$(obj)%.S
+%.o:	%.S
 	$(CC) $(AFLAGS) -c -o $@ $<
 
-$(obj)%.o:	$(obj)%.c
+%.o:	%.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 # defines $(obj).depend target
-include $(SRCTREE)/rules.mk
+#include $(SRCTREE)/rules.mk
 
-sinclude $(obj).depend
+#sinclude $(obj).depend
 
 #########################################################################
