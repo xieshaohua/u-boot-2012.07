@@ -29,8 +29,6 @@ CPUDIR=arch/$(ARCH)/cpu/$(CPU)
 
 PLATFORM_CPPFLAGS += -DCONFIG_ARM -D__ARM__ -marm -mno-thumb-interwork -mabi=aapcs-linux -march=armv4
 
-PLATFORM_LIBS := $(TOPDIR)/arch/arm/lib/eabi_compat.o
-
 # needed for relocation
 ifndef CONFIG_NAND_SPL
 LDFLAGS_u-boot += -pie

@@ -18,12 +18,3 @@ COBJS	:= $(COBJS-y)
 
 $(LIB):	$(COBJS)
 	$(call cmd_link_o_target, $(COBJS))
-
-#########################################################################
-
-# defines $(obj).depend target
-#include $(SRCTREE)/rules.mk
-
-#sinclude $(obj).depend
-
-#########################################################################

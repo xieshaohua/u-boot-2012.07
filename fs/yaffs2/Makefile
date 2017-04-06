@@ -15,11 +15,3 @@ CFLAGS +=    -DCONFIG_YAFFS_DIRECT -DCONFIG_YAFFS_SHORT_NAMES_IN_RAM -DCONFIG_YA
 
 $(LIB): $(COBJS)
 	$(call cmd_link_o_target, $(COBJS))
-
-#########################################################################
-
-#include $(SRCTREE)/rules.mk
-
-#sinclude .depend
-
-#########################################################################

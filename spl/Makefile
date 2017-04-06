@@ -3,7 +3,7 @@ CONFIG_NAND_SPL	= y
 
 include $(TOPDIR)/config.mk
 
-splobj	:= $(OBJTREE)/spl/
+splobj	:= $(TOPDIR)/spl/
 
 LDSCRIPT= $(splobj)spl.lds
 LDFLAGS := -T $(LDSCRIPT) -Ttext $(CONFIG_SYS_TEXT_BASE) $(LDFLAGS) \
@@ -37,13 +37,7 @@ $(splobj)spl:	$(OBJS) $(LDSCRIPT)
 
 %.o:	%.S
 	$(CC) $(AFLAGS) -c -o $@ $<
-
 %.o:	%.c
 	$(CC) $(CFLAGS) -c -o $@ $<
-
-# defines $(obj).depend target
-#include $(SRCTREE)/rules.mk
-
-#sinclude $(obj).depend
 
 #########################################################################

@@ -1,8 +1,6 @@
 
-OBJTREE		:= $(CURDIR)
-SRCTREE		:= $(CURDIR)
 TOPDIR		:= $(CURDIR)
-export	TOPDIR SRCTREE OBJTREE
+export	TOPDIR
 
 #########################################################################
 # Include autoconf.mk before config.mk so that the config options are available
@@ -41,19 +39,19 @@ LIBS := $(sort $(LIBS))
 
 LIBBOARD = board/$(BOARD)/lib$(BOARD).o
 
+PLATFORM_LIBS := $(TOPDIR)/arch/arm/lib/eabi_compat.o
 # Add GCC lib
 PLATFORM_LIBGCC := -L $(shell dirname `$(CC) $(CFLAGS) -print-libgcc-file-name`) -lgcc
 PLATFORM_LIBS += $(PLATFORM_LIBGCC)
-export PLATFORM_LIBS
 
 # Special flags for CPP when processing the linker script.
 # Pass the version down so we can handle backwards compatibility
 # on the fly.
-LDPPFLAGS += \
-	-include $(TOPDIR)/include/u-boot/u-boot.lds.h \
-	-DCPUDIR=$(CPUDIR) \
-	$(shell $(LD) --version | \
-	  sed -ne 's/GNU ld version \([0-9][0-9]*\)\.\([0-9][0-9]*\).*/-DLD_MAJOR=\1 -DLD_MINOR=\2/p')
+#LDPPFLAGS += \
+#	-include $(TOPDIR)/include/u-boot/u-boot.lds.h \
+#	-DCPUDIR=$(CPUDIR) \
+#	$(shell $(LD) --version | \
+#	  sed -ne 's/GNU ld version \([0-9][0-9]*\)\.\([0-9][0-9]*\).*/-DLD_MAJOR=\1 -DLD_MINOR=\2/p')
 
 #########################################################################
 all:	u-boot.bin u-boot-spl.bin System.map

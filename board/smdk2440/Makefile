@@ -30,12 +30,3 @@ SOBJS	:= lowlevel_init.o
 
 $(LIB):	$(COBJS) $(SOBJS)
 	$(call cmd_link_o_target, $(COBJS) $(SOBJS))
-
-#########################################################################
-
-# defines $(obj).depend target
-#include $(SRCTREE)/rules.mk
-
-#sinclude $(obj).depend
-
-#########################################################################
