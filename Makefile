@@ -90,6 +90,6 @@ clean:
 	@find $(TOPDIR) -type f -name '*.o' -print | xargs rm -f
 	@rm -f u-boot u-boot.bin u-boot-spl.bin u-boot.map
 	@rm -f include/autoconf.mk
-	@rm -f spl/spl.bin spl/spl-4k.bin
+	@make -C spl clean
 
 #########################################################################
