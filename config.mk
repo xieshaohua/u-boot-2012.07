@@ -29,12 +29,7 @@ CPUDIR=arch/$(ARCH)/cpu/$(CPU)
 
 PLATFORM_CPPFLAGS += -DCONFIG_ARM -D__ARM__ -marm -mno-thumb-interwork -mabi=aapcs-linux -march=armv4
 
-# include board specific rules
-ifndef CONFIG_NAND_SPL
 CONFIG_SYS_TEXT_BASE = 0x33F00000
-else
-CONFIG_SYS_TEXT_BASE = 0
-endif
 
 #########################################################################
 
@@ -52,7 +47,7 @@ LDFLAGS_u-boot += -pie -T u-boot.lds -Bstatic -Ttext $(CONFIG_SYS_TEXT_BASE)
 
 #########################################################################
 
-export AS LD CC CPP AR NM STRIP OBJCOPY OBJDUMP MAKE
+export AS LD CC CPP AR NM STRIP OBJCOPY OBJDUMP
 export PLATFORM_CPPFLAGS CPPFLAGS CFLAGS AFLAGS
 
 #########################################################################
