@@ -86,7 +86,6 @@ include/autoconf.mk:
 
 #########################################################################
 clean:
-	@rm -f spl/spl spl/spl.map
 	@find $(TOPDIR) -type f -name '*.o' -print | xargs rm -f
 	@rm -f u-boot u-boot.bin u-boot-spl.bin u-boot.map
 	@rm -f include/autoconf.mk
