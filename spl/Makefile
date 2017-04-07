@@ -16,7 +16,7 @@ gccincdir := $(shell $(CC) -print-file-name=include)
 CPPFLAGS := -g -Os -fno-common -ffixed-r8 -msoft-float -D__KERNEL__ -DCONFIG_SYS_TEXT_BASE=$(CONFIG_SYS_TEXT_BASE)	\
 			-I../include -fno-builtin -ffreestanding -nostdinc -isystem $(gccincdir) -pipe $(PLATFORM_CPPFLAGS)
 
-CFLAGS := $(CPPFLAGS) -Wall -Wstrict-prototypes -fno-stack-protector -Wno-format-nonliteral -Wno-format-security
+CFLAGS := $(CPPFLAGS) -Wall -Wstrict-prototypes -fno-stack-protector -Wno-format-nonliteral -Wno-format-security -ffunction-sections
 
 
 AFLAGS := -D__ASSEMBLY__ $(CPPFLAGS)
@@ -25,11 +25,9 @@ AFLAGS := -D__ASSEMBLY__ $(CPPFLAGS)
 
 LDSCRIPT= spl.lds
 LDFLAGS := -T $(LDSCRIPT) -Ttext $(CONFIG_SYS_TEXT_BASE) $(LDFLAGS) -Bstatic -gc-sections
-AFLAGS	+= -DCONFIG_NAND_SPL
-CFLAGS	+= -DCONFIG_NAND_SPL -ffunction-sections
 
 SOBJS	= start.o lowlevel_init.o
-COBJS	= nand_boot.o s3c2440_nand.o smdk2440_nand_spl.o nand_base.o
+COBJS	= nand_boot.o s3c2440_nand.o nand_base.o
 
 OBJS	:= $(SOBJS) $(COBJS)
 

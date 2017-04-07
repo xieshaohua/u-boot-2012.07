@@ -275,7 +275,7 @@ void nand_boot(void)
 	 * Load U-Boot image from NAND into RAM
 	 */
 	nand_load(&nand_info, CONFIG_SYS_NAND_U_BOOT_OFFS, CONFIG_SYS_NAND_U_BOOT_SIZE,
-		  (uchar *)CONFIG_SYS_NAND_U_BOOT_DST);
+		  (uchar *)CONFIG_SYS_NAND_BOOT_START);
 
 	if (nand_chip.select_chip)
 		nand_chip.select_chip(&nand_info, -1);
@@ -283,6 +283,6 @@ void nand_boot(void)
 	/*
 	 * Jump to U-Boot image
 	 */
-	uboot = (void *)CONFIG_SYS_NAND_U_BOOT_START;
+	uboot = (void *)CONFIG_SYS_NAND_BOOT_START;
 	(*uboot)();
 }

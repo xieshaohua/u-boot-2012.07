@@ -113,10 +113,10 @@ static int s3c2440_nand_calculate_ecc(struct mtd_info *mtd, const u_char *dat,
 	ecc_code[1] = (nfmecc0 >> 8) & 0xff;
 	ecc_code[2] = (nfmecc0 >> 16) & 0xff;
 	ecc_code[3] = (nfmecc0 >> 24) & 0xff;
-#ifndef CONFIG_NAND_SPL
+//#ifndef CONFIG_NAND_SPL
 	//debug("s3c2440_nand_calculate_hwecc(%p,): 0x%02x 0x%02x 0x%02x 0x%02x\n",
 	//	mtd , ecc_code[0], ecc_code[1], ecc_code[2], ecc_code[3]);
-#endif
+//#endif
 	return 0;
 }
 
@@ -140,9 +140,9 @@ static int s3c2440_nand_correct_data(struct mtd_info *mtd, u_char *dat,
 
 	switch (err_type) {
 	case 0:	/* No error */
-#ifndef CONFIG_NAND_SPL
-		//debug("S3C2440 NAND: ECC OK!\n");
-#endif
+//#ifndef CONFIG_NAND_SPL
+//		//debug("S3C2440 NAND: ECC OK!\n");
+//#endif
 		ret = 0;
 		break;
 	case 1:
@@ -154,20 +154,20 @@ static int s3c2440_nand_correct_data(struct mtd_info *mtd, u_char *dat,
 		err_byte_addr = (nfestat0 >> 7) & 0x7ff;
 		repaired = dat[err_byte_addr] ^ (1 << ((nfestat0 >> 4) & 0x7));
 		dat[err_byte_addr] = repaired;
-#ifndef CONFIG_NAND_SPL
-		debug("S3C2440 NAND: 1 bit error detected at byte %ld. "
-		       "Correcting from 0x%02x to 0x%02x...OK\n",
-		       err_byte_addr, dat[err_byte_addr], repaired);
-#endif
+//#ifndef CONFIG_NAND_SPL
+//		debug("S3C2440 NAND: 1 bit error detected at byte %ld. "
+//		       "Correcting from 0x%02x to 0x%02x...OK\n",
+//		       err_byte_addr, dat[err_byte_addr], repaired);
+//#endif
 		ret = 1;
 		break;
 
 	case 2: /* Multiple error */
 	case 3: /* ECC area error */
 	default:
-#ifndef CONFIG_NAND_SPL
-		debug("S3C2440 NAND: ECC uncorrectable error detected\n");
-#endif
+//#ifndef CONFIG_NAND_SPL
+//		debug("S3C2440 NAND: ECC uncorrectable error detected\n");
+//#endif
 		ret = -1;
 		break;
 	}
@@ -211,9 +211,9 @@ int board_nand_init(struct nand_chip *nand)
 
 	/* read_buf and write_buf are default */
 	/* read_byte and write_byte are default */
-#ifdef CONFIG_NAND_SPL
+//#ifdef CONFIG_NAND_SPL
 	nand->read_buf = nand_read_buf;
-#endif
+//#endif
 
 	/* hwcontrol always must be implemented */
 	nand->cmd_ctrl = s3c2440_hwcontrol;
