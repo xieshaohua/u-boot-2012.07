@@ -14,9 +14,7 @@ CFLAGS	+= -DCONFIG_NAND_SPL -ffunction-sections
 SOBJS	= start.o lowlevel_init.o
 COBJS	= nand_boot.o s3c2440_nand.o smdk2440_nand_spl.o nand_base.o
 
-SRCS	:= $(addprefix $(obj),$(SOBJS:.o=.S) $(COBJS:.o=.c))
-OBJS	:= $(addprefix $(obj),$(SOBJS) $(COBJS))
-__OBJS	:= $(SOBJS) $(COBJS)
+OBJS	:= $(SOBJS) $(COBJS)
 
 ALL	= $(splobj)spl $(splobj)spl.bin $(splobj)spl-4k.bin
 
@@ -29,7 +27,7 @@ $(splobj)spl.bin:	$(splobj)spl
 	$(OBJCOPY) --gap-fill=0xff -O binary $< $@
 
 $(splobj)spl:	$(OBJS) $(LDSCRIPT)
-	cd $(splobj) && $(LD) $(LDFLAGS) $(__OBJS) \
+	cd $(splobj) && $(LD) $(LDFLAGS) $(OBJS) \
 		-Map $(splobj)spl.map \
 		-o $(splobj)spl
 
