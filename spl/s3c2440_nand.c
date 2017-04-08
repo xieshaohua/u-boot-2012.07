@@ -4,6 +4,28 @@
 #include <asm/arch/s3c24x0_cpu.h>
 #include <asm/io.h>
 
+
+#define rCLKCON     (*(volatile unsigned *)0x4c00000c)  /* Clock generator control             */
+
+/* NAND Flash */
+#define rNFCONF     (*(volatile unsigned *)0x4E000000)  /* NAND Flash configuration            */
+#define rNFCONT     (*(volatile unsigned *)0x4E000004)  /* NAND Flash control                  */
+#define rNFCMD      (*(volatile unsigned *)0x4E000008)  /* NAND Flash command                  */
+#define rNFADDR     (*(volatile unsigned *)0x4E00000C)  /* NAND Flash address                  */
+#define rNFDATA     (*(volatile unsigned *)0x4E000010)  /* NAND Flash data                     */
+#define rNFMECCD0   (*(volatile unsigned *)0x4E000014)  /* NAND Flash main area ECC0/1         */
+#define rNFMECCD1   (*(volatile unsigned *)0x4E000018)  /* NAND Flash main area ECC2/3         */
+#define rNFSECCD    (*(volatile unsigned *)0x4E00001C)  /* NAND Flash spare area ECC           */
+#define rNFSTAT     (*(volatile unsigned *)0x4E000020)  /* NAND Flash operation status         */
+#define rNFESTAT0   (*(volatile unsigned *)0x4E000024)  /* NAND Flash ECC status for I/O[7:0]  */
+#define rNFESTAT1   (*(volatile unsigned *)0x4E000028)  /* NAND Flash ECC status for I/O[15:0] */
+#define rNFMECC0    (*(volatile unsigned *)0x4E00002C)  /* NAND Flash main area ECC0 status    */
+#define rNFMECC1    (*(volatile unsigned *)0x4E000030)  /* NAND Flash main area ECC1 status    */
+#define rNFSECC     (*(volatile unsigned *)0x4E000034)  /* NAND Flash spare area ECC status    */
+#define rNFSBLK     (*(volatile unsigned *)0x4E000038)  /* NAND Flash start block address      */
+#define rNFEBLK     (*(volatile unsigned *)0x4E00003C)  /* NAND Flash end block address        */
+
+
 #define S3C2440_NFCONT_EN		(1<<0)
 #define S3C2440_NFCONT_nFCE        	(1<<1)		/* NFCONT[1] 0:Enable 1:Disable */
 
@@ -18,8 +40,7 @@
 
 static int s3c2440_dev_ready(struct mtd_info *mtd)
 {
-	struct s3c2440_nand *nand_reg = s3c2440_get_base_nand();
-	return !!(readl(&nand_reg->nfstat) & 0x01);
+	return !!(rNFSTAT & 0x01);
 }
 
 static void s3c2440_nand_select_chip(struct mtd_info *mtd, int chip)
@@ -28,12 +49,10 @@ static void s3c2440_nand_select_chip(struct mtd_info *mtd, int chip)
 
 	switch (chip) {
 	case -1:
-		writel(readl(&nand_reg->nfcont) | S3C2440_NFCONT_nFCE,
-			&nand_reg->nfcont);
+		rNFCONT |= S3C2440_NFCONT_nFCE;
 		break;
 	case 0:
-		writel(readl(&nand_reg->nfcont) & (~S3C2440_NFCONT_nFCE),
-			&nand_reg->nfcont);
+		rNFCONT &= ~S3C2440_NFCONT_nFCE;
 		break;
 	default:
 		break;
@@ -42,36 +61,28 @@ static void s3c2440_nand_select_chip(struct mtd_info *mtd, int chip)
 
 static void s3c2440_hwcontrol(struct mtd_info *mtd, int cmd, unsigned int ctrl)
 {
-	struct nand_chip *this = mtd->priv;
-	struct s3c2440_nand *nand_reg = s3c2440_get_base_nand();
+	if (ctrl & NAND_NCE)
+		s3c2440_nand_select_chip(mtd, 0);
+	else
+		s3c2440_nand_select_chip(mtd, -1);
 
-	if (ctrl & NAND_CTRL_CHANGE) {
-		if (ctrl & NAND_NCE)
-			s3c2440_nand_select_chip(mtd, 0);
-		else
-			s3c2440_nand_select_chip(mtd, -1);
-
+	if (cmd != NAND_CMD_NONE) {
 		if (ctrl & NAND_CLE)
-			this->IO_ADDR_W = (void __iomem *)&nand_reg->nfcmd;
+			rNFCMD = cmd;
 		else if (ctrl & NAND_ALE)
-			this->IO_ADDR_W = (void __iomem *)&nand_reg->nfaddr;
+			rNFADDR = cmd;
 		else
-			this->IO_ADDR_W = (void __iomem *)&nand_reg->nfdata;
+			rNFDATA = cmd;
 	}
-
-	if (cmd != NAND_CMD_NONE)
-		writeb(cmd, this->IO_ADDR_W);
 }
 
 #ifdef CONFIG_S3C2440_NAND_HWECC
 void s3c2440_nand_enable_hwecc(struct mtd_info *mtd, int mode)
 {
-	u_int32_t cfg;
-	struct s3c2440_nand *nand = s3c2440_get_base_nand();
+	unsigned long cfg = rNFCONT;
 
-	cfg = readl(&nand->nfcont);
 	cfg &= ~S3C2440_NFCONT_MECCLOCK;	/* unlock */
-	writel(cfg | S3C2440_NFCONF_INITECC, &nand->nfcont);
+	rNFCONT = cfg | S3C2440_NFCONF_INITECC;
 }
 
 static int s3c2440_nand_calculate_ecc(struct mtd_info *mtd, const u_char *dat,
@@ -139,14 +150,12 @@ static int s3c2440_nand_correct_data(struct mtd_info *mtd, u_char *dat,
 
 int board_nand_init(struct nand_chip *nand)
 {
-	u_int32_t cfg;
+	unsigned long cfg;
 	u_int8_t tacls, twrph0, twrph1;
 	struct s3c24x0_clock_power *clk_power = s3c24x0_get_base_clock_power();
 	struct s3c2440_nand *nand_reg = s3c2440_get_base_nand();
 
-	//debug("board_nand_init()\n");
-
-	writel(readl(&clk_power->clkcon) | (1 << 4), &clk_power->clkcon);
+	rCLKCON |= (1 << 4);
 
 	/* initialize hardware */
 	tacls = 4;
@@ -154,15 +163,15 @@ int board_nand_init(struct nand_chip *nand)
 	twrph1 = 8;
 
 	/* NAND flash controller enable */
-	cfg = readl(&nand_reg->nfcont);
+	cfg = rNFCONT;
 	cfg &= ~(1<<12);	/* disable soft lock of nand flash */
 	cfg |= S3C2440_NFCONT_EN;
-	writel(cfg, &nand_reg->nfcont);
+	rNFCONT = cfg;
 
 	cfg = S3C2440_NFCONF_TACLS(tacls - 1);
 	cfg |= S3C2440_NFCONF_TWRPH0(twrph0 - 1);
 	cfg |= S3C2440_NFCONF_TWRPH1(twrph1 - 1);
-	writel(readl(&nand_reg->nfconf) | cfg, &nand_reg->nfconf);
+	rNFCONF = cfg;
 
 	/* initialize nand_chip data structure */
 	nand->IO_ADDR_R = (void __iomem *)&nand_reg->nfdata;
