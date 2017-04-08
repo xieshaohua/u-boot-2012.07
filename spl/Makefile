@@ -27,7 +27,7 @@ LDSCRIPT= spl.lds
 LDFLAGS := -T $(LDSCRIPT) -Ttext $(CONFIG_SYS_TEXT_BASE) $(LDFLAGS) -Bstatic -gc-sections
 
 SOBJS	= start.o lowlevel_init.o
-COBJS	= nand_boot.o s3c2440_nand.o nand_base.o
+COBJS	= nand_boot.o
 
 OBJS	:= $(SOBJS) $(COBJS)
 
