@@ -1,5 +1,41 @@
 
-#include <nand.h>
+/* Select the chip by setting nCE to low */
+#define NAND_NCE		0x01
+/* Select the command latch by setting CLE to high */
+#define NAND_CLE		0x02
+/* Select the address latch by setting ALE to high */
+#define NAND_ALE		0x04
+
+#define NAND_CTRL_CLE		(NAND_NCE | NAND_CLE)
+#define NAND_CTRL_ALE		(NAND_NCE | NAND_ALE)
+
+/*
+ * Standard NAND flash commands
+ */
+#define NAND_CMD_READ0		0
+#define NAND_CMD_READOOB	0x50
+
+#define NAND_CMD_NONE		-1
+
+/* Extended commands for large page devices */
+#define NAND_CMD_READSTART	0x30
+
+/* NAND configuration */
+#define CONFIG_SYS_NAND_BOOT_START	0x33F00000
+
+#define CONFIG_SYS_NAND_U_BOOT_OFFS	(4 * 1024)	/* Offset to RAM U-Boot image */
+#define CONFIG_SYS_NAND_U_BOOT_SIZE	(512 * 1024)	/* Size of RAM U-Boot image   */
+
+/* NAND chip block size		*/
+#define CONFIG_SYS_NAND_BLOCK_SIZE	(128 * 1024)
+/* NAND chip page per block count  */
+#define CONFIG_SYS_NAND_PAGE_COUNT	64
+/* Location of the bad-block label */
+#define CONFIG_SYS_NAND_BAD_BLOCK_POS	0
+/* Size of a single OOB region */
+#define CONFIG_SYS_NAND_OOBSIZE		64
+#define CONFIG_SYS_NAND_PAGE_SIZE	2048		/* NAND chip page size		*/
+
 
 static int nand_ecc_pos[] = {40, 41, 42, 43};
 
@@ -35,7 +71,7 @@ static int nand_ecc_pos[] = {40, 41, 42, 43};
 #define S3C2440_NFCONF_TWRPH0(x)   	((x)<<8)
 #define S3C2440_NFCONF_TWRPH1(x)   	((x)<<4)
 
-static void s3c2440_nand_read_buf(uint8_t *buf, int len)
+static void s3c2440_nand_read_buf(unsigned char *buf, int len)
 {
 	int i;
 
@@ -79,7 +115,6 @@ static void s3c2440_hwcontrol(int cmd, unsigned int ctrl)
 	}
 }
 
-#ifdef CONFIG_S3C2440_NAND_HWECC
 void s3c2440_nand_enable_hwecc(void)
 {
 	unsigned long cfg = rNFCONT;
@@ -88,7 +123,7 @@ void s3c2440_nand_enable_hwecc(void)
 	rNFCONT = cfg | S3C2440_NFCONF_INITECC;
 }
 
-static int s3c2440_nand_calculate_ecc(u_char *ecc_code)
+static int s3c2440_nand_calculate_ecc(unsigned char *ecc_code)
 {
 	unsigned long nfmecc0;
 
@@ -104,8 +139,8 @@ static int s3c2440_nand_calculate_ecc(u_char *ecc_code)
 	return 0;
 }
 
-static int s3c2440_nand_correct_data(u_char *dat,
-				     u_char *read_ecc, u_char *calc_ecc)
+static int s3c2440_nand_correct_data(unsigned char *dat,
+				     unsigned char *read_ecc, unsigned char *calc_ecc)
 {
 	int ret = -1;
 	unsigned long nfestat0, nfmeccd0, nfmeccd1, err_byte_addr;
@@ -146,12 +181,11 @@ static int s3c2440_nand_correct_data(u_char *dat,
 
 	return ret;
 }
-#endif
 
-int board_nand_init(struct nand_chip *nand)
+int board_nand_init(void)
 {
 	unsigned long cfg;
-	u_int8_t tacls, twrph0, twrph1;
+	unsigned char tacls, twrph0, twrph1;
 
 	rCLKCON |= (1 << 4);
 
@@ -177,7 +211,7 @@ int board_nand_init(struct nand_chip *nand)
 /*
  * NAND command for large page NAND devices (2k)
  */
-static int nand_command(int block, int page, int offs, u8 cmd)
+static int nand_command(int block, int page, int offs, unsigned char cmd)
 {
 	int page_addr = page + block * CONFIG_SYS_NAND_PAGE_COUNT;
 
@@ -190,11 +224,10 @@ static int nand_command(int block, int page, int offs, u8 cmd)
 	}
 
 	/* Begin command latch cycle */
-	s3c2440_hwcontrol(cmd, NAND_CTRL_CLE | NAND_CTRL_CHANGE);
+	s3c2440_hwcontrol(cmd, NAND_CTRL_CLE);
 	/* Set ALE and clear CLE to start address cycle */
 	/* Column address */
-	s3c2440_hwcontrol(offs & 0xff,
-		       NAND_CTRL_ALE | NAND_CTRL_CHANGE); /* A[7:0] */
+	s3c2440_hwcontrol(offs & 0xff, NAND_CTRL_ALE); /* A[7:0] */
 	s3c2440_hwcontrol((offs >> 8) & 0xff, NAND_CTRL_ALE); /* A[11:9] */
 	/* Row address */
 	s3c2440_hwcontrol((page_addr & 0xff), NAND_CTRL_ALE); /* A[19:12] */
@@ -204,9 +237,8 @@ static int nand_command(int block, int page, int offs, u8 cmd)
 		       NAND_CTRL_ALE); /* A[31:28] */
 
 	/* Latch in address */
-	s3c2440_hwcontrol(NAND_CMD_READSTART,
-		       NAND_CTRL_CLE | NAND_CTRL_CHANGE);
-	s3c2440_hwcontrol(NAND_CMD_NONE, NAND_NCE | NAND_CTRL_CHANGE);
+	s3c2440_hwcontrol(NAND_CMD_READSTART, NAND_CTRL_CLE);
+	s3c2440_hwcontrol(NAND_CMD_NONE, NAND_NCE);
 
 	/*
 	 * Wait a while for the data to be ready
@@ -232,13 +264,13 @@ static int nand_is_bad_block(int block)
 
 static int nand_read_page(int block, int page, unsigned char *dst)
 {
-	u_char ecc_calc[4];
-	u_char ecc_code[4];
-	u_char oob_data[64];
+	unsigned char ecc_calc[4];
+	unsigned char ecc_code[4];
+	unsigned char oob_data[64];
 	int i;
 	int eccsize = 2048;
 	int eccbytes = 4;
-	uint8_t *p = dst;
+	unsigned char *p = dst;
 
 	nand_command(block, page, 0, NAND_CMD_READ0);
 
@@ -302,13 +334,12 @@ static int nand_load(unsigned int offs, unsigned int uboot_size, unsigned char *
  */
 void nand_boot(void)
 {
-	struct nand_chip nand_chip;
 	__attribute__((noreturn)) void (*uboot)(void);
 
 	/*
 	 * Init board specific nand support
 	 */
-	board_nand_init(&nand_chip);
+	board_nand_init();
 
 	s3c2440_nand_select_chip(0);
 

@@ -1,9 +1,4 @@
 
-#include <asm-offsets.h>
-#include <common.h>
-#include <config.h>
-
-
 .globl _start
 _start:
 	b	start_code
@@ -39,7 +34,7 @@ start_code:
 	bl	cpu_init_crit
 
 /* Set stackpointer in SDRAM before CONFIG_SYS_NAND_BOOT_START */
-	ldr	sp, =(CONFIG_SYS_INIT_SP_ADDR)
+	ldr	sp, =0x33F00000
 	bic	sp, sp, #7 /* 8-byte alignment for ABI compliance */
 
 
