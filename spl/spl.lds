@@ -7,8 +7,7 @@ SECTIONS
  . = ALIGN(4);
  .text :
  {
-   start.o (.text)
-   nand_boot.o (.text)
+   init.o (.text)
    *(.text)
  }
  . = ALIGN(4);

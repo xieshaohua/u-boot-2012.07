@@ -1,3 +1,4 @@
+#include "init.h"
 
 .globl _start
 _start:

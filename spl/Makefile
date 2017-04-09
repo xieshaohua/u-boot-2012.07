@@ -5,7 +5,7 @@ CC	= $(CROSS_COMPILE)gcc
 LD	= $(CROSS_COMPILE)ld
 OBJCOPY = $(CROSS_COMPILE)objcopy
 
-PLATFORM_CPPFLAGS += -DCONFIG_ARM -D__ARM__ -marm -mno-thumb-interwork -mabi=aapcs-linux -march=armv4
+PLATFORM_CPPFLAGS += -marm -mno-thumb-interwork -mabi=aapcs-linux -march=armv4
 
 CONFIG_SYS_TEXT_BASE = 0
 
@@ -13,21 +13,20 @@ CONFIG_SYS_TEXT_BASE = 0
 
 gccincdir := $(shell $(CC) -print-file-name=include)
 
-CPPFLAGS := -g -Os -fno-common -ffixed-r8 -msoft-float -D__KERNEL__ -DCONFIG_SYS_TEXT_BASE=$(CONFIG_SYS_TEXT_BASE)	\
-			-I../include -fno-builtin -ffreestanding -nostdinc -isystem $(gccincdir) -pipe $(PLATFORM_CPPFLAGS)
+CPPFLAGS := -g -Os -fno-common -ffixed-r8 -msoft-float -fno-builtin -ffreestanding -nostdinc -isystem $(gccincdir) -pipe $(PLATFORM_CPPFLAGS)
 
 CFLAGS := $(CPPFLAGS) -Wall -Wstrict-prototypes -fno-stack-protector -Wno-format-nonliteral -Wno-format-security -ffunction-sections
 
 
-AFLAGS := -D__ASSEMBLY__ $(CPPFLAGS)
+AFLAGS := $(CPPFLAGS)
 
 #########################################################################
 
 LDSCRIPT= spl.lds
-LDFLAGS := -T $(LDSCRIPT) -Ttext $(CONFIG_SYS_TEXT_BASE) $(LDFLAGS) -Bstatic -gc-sections
+LDFLAGS := -T $(LDSCRIPT) $(LDFLAGS) -Bstatic -gc-sections
 
-SOBJS	= start.o lowlevel_init.o
-COBJS	= nand_boot.o
+SOBJS	= init.o lowlevel_init.o
+COBJS	= spl_boot.o
 
 OBJS	:= $(SOBJS) $(COBJS)
 
