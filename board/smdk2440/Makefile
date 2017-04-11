@@ -26,7 +26,6 @@ include $(TOPDIR)/config.mk
 LIB	= $(obj)lib$(BOARD).o
 
 COBJS	:= smdk2440.o
-SOBJS	:= lowlevel_init.o
 
-$(LIB):	$(COBJS) $(SOBJS)
-	$(call cmd_link_o_target, $(COBJS) $(SOBJS))
+$(LIB):	$(COBJS)
+	$(call cmd_link_o_target, $(COBJS))

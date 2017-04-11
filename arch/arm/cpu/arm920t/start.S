@@ -36,10 +36,8 @@
  *************************************************************************
  */
 
-
 .globl _start
 _start:	b	start_code
-#ifndef CONFIG_NAND_SPL
 	ldr	pc, _undefined_instruction
 	ldr	pc, _software_interrupt
 	ldr	pc, _prefetch_abort
@@ -56,9 +54,6 @@ _not_used:		.word not_used
 _irq:			.word irq
 _fiq:			.word fiq
 _pad:			.word 0x12345678 /* now 16*4=64 */
-#else
-	. = _start + 64
-#endif
 
 	.balignl 16,0xdeadbeef
 
@@ -132,16 +127,25 @@ start_code:
 	 * we do sys-critical inits only at reboot,
 	 * not when booting from ram!
 	 */
-#ifndef CONFIG_SKIP_LOWLEVEL_INIT
 	bl	cpu_init_crit
-#endif
+
+
+	ldr	sp, =CONFIG_SYS_INIT_SP_ADDR
+	bic	sp, sp, #7 /* 8-byte alignment for ABI compliance */
 
 /* Set stackpointer in internal RAM to call board_init_f */
 call_board_init_f:
-	ldr	sp, =(CONFIG_SYS_INIT_SP_ADDR)
-	bic	sp, sp, #7 /* 8-byte alignment for ABI compliance */
-	ldr	r0,=0x00000000
-	bl	board_init_f
+
+	bl	led1_on
+
+	bl	nand_boot
+
+	mov	r0, #0x0
+	ldr	r1, _board_init_f
+	mov	pc, r1
+
+_board_init_f:
+	.word board_init_f
 
 /*------------------------------------------------------------------------------*/
 
@@ -157,6 +161,8 @@ relocate_code:
 	mov	r4, r0	/* save addr_sp */
 	mov	r5, r1	/* save addr of gd */
 	mov	r6, r2	/* save addr of destination */
+
+	bl	led4_on
 
 	/* Set up the stack						    */
 stack_setup:
@@ -228,10 +234,6 @@ clbss_l:cmp	r0, r1			/* clear loop... */
 	add	r0, r0, #4
 	b	clbss_l
 clbss_e:
-#ifndef CONFIG_NAND_SPL
-	bl coloured_LED_init
-	bl red_led_on
-#endif
 
 /*
  * We are done. Do not return, instead branch to second part of board
@@ -275,9 +277,6 @@ _dynsym_start_ofs:
  *
  *************************************************************************
  */
-
-
-#ifndef CONFIG_SKIP_LOWLEVEL_INIT
 cpu_init_crit:
 	/*
 	 * flush v4 I/D caches
@@ -307,10 +306,8 @@ cpu_init_crit:
 
 	mov	lr, ip
 	mov	pc, lr
-#endif /* CONFIG_SKIP_LOWLEVEL_INIT */
 
 
-#ifndef CONFIG_NAND_SPL
 /*
  *************************************************************************
  *
@@ -473,4 +470,6 @@ fiq:
 	bl	do_fiq
 
 #endif
-#endif	/* !CONFIG_NAND_SPL */
+
+	.ltorg
+

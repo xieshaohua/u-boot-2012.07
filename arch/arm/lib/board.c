@@ -37,6 +37,7 @@
  * IRQ Stack: 00ebff7c
  * FIQ Stack: 00ebef7c
  */
+#define DEBUG
 
 #include <common.h>
 #include <command.h>
@@ -204,6 +205,9 @@ init_fnc_t *init_sequence[] = {
 	NULL,
 };
 
+#define rGPBDAT     (*(volatile unsigned *)0x56000014)
+
+
 void board_init_f(ulong bootflag)
 {
 	bd_t *bd;
@@ -215,6 +219,8 @@ void board_init_f(ulong bootflag)
 #endif
 
 	bootstage_mark_name(BOOTSTAGE_ID_START_UBOOT_F, "board_init_f");
+
+	//led_on_2();
 
 	/* Pointer is writable since we allocated a register for it */
 	gd = (gd_t *) ((CONFIG_SYS_INIT_SP_ADDR) & ~0x07);
@@ -229,6 +235,7 @@ void board_init_f(ulong bootflag)
 	gd->fdt_blob = (void *)getenv_ulong("fdtcontroladdr", 16,
 						(uintptr_t)gd->fdt_blob);
 
+
 	for (init_fnc_ptr = init_sequence; *init_fnc_ptr; ++init_fnc_ptr) {
 		if ((*init_fnc_ptr)() != 0) {
 			hang ();
@@ -241,84 +248,93 @@ void board_init_f(ulong bootflag)
 	 */
 	debug("ramsize: %08lX\n", gd->ram_size);
 
-	addr = CONFIG_SYS_SDRAM_BASE + gd->ram_size;
+	//addr = CONFIG_SYS_SDRAM_BASE + gd->ram_size;
 
-#if !(defined(CONFIG_SYS_ICACHE_OFF) && defined(CONFIG_SYS_DCACHE_OFF))
+//#if !(defined(CONFIG_SYS_ICACHE_OFF) && defined(CONFIG_SYS_DCACHE_OFF))
 	/* reserve TLB table */
-	addr -= (4096 * 4);
+//	addr -= (4096 * 4);
 
 	/* round down to next 64 kB limit */
-	addr &= ~(0x10000 - 1);
+//	addr &= ~(0x10000 - 1);
 
-	gd->tlb_addr = addr;
-	debug("TLB table at: %08lx\n", addr);
-#endif
+//	gd->tlb_addr = addr;
+//	debug("TLB table at: %08lx\n", addr);
+//#endif
 
 	/* round down to next 4 kB limit */
-	addr &= ~(4096 - 1);
-	debug("Top of RAM usable for U-Boot at: %08lx\n", addr);
+//	addr &= ~(4096 - 1);
+//	debug("Top of RAM usable for U-Boot at: %08lx\n", addr);
 
 	/*
 	 * reserve memory for U-Boot code, data & bss
 	 * round down to next 4 kB limit
 	 */
-	addr -= gd->mon_len;
-	addr &= ~(4096 - 1);
+//	addr -= gd->mon_len;
+//	addr &= ~(4096 - 1);
 
-	debug("Reserving %ldk for U-Boot at: %08lx\n", gd->mon_len >> 10, addr);
+//	debug("Reserving %ldk for U-Boot at: %08lx\n", gd->mon_len >> 10, addr);
 
 	/*
 	 * reserve memory for malloc() arena
 	 */
-	addr_sp = addr - TOTAL_MALLOC_LEN;
-	debug("Reserving %dk for malloc() at: %08lx\n",
-			TOTAL_MALLOC_LEN >> 10, addr_sp);
+//	addr_sp = addr - TOTAL_MALLOC_LEN;
+//	debug("Reserving %dk for malloc() at: %08lx\n",
+//			TOTAL_MALLOC_LEN >> 10, addr_sp);
 	/*
 	 * (permanently) allocate a Board Info struct
 	 * and a permanent copy of the "global" data
 	 */
-	addr_sp -= sizeof (bd_t);
-	bd = (bd_t *) addr_sp;
+//	addr_sp -= sizeof (bd_t);
+	bd = (bd_t *) (CONFIG_SYS_INIT_SP_ADDR + GENERATED_GBL_DATA_SIZE);
 	gd->bd = bd;
 	debug("Reserving %zu Bytes for Board Info at: %08lx\n",
-			sizeof (bd_t), addr_sp);
+			sizeof (bd_t), bd);
 
 #ifdef CONFIG_MACH_TYPE
 	gd->bd->bi_arch_number = CONFIG_MACH_TYPE; /* board id for Linux */
 #endif
 
-	addr_sp -= sizeof (gd_t);
-	id = (gd_t *) addr_sp;
-	debug("Reserving %zu Bytes for Global Data at: %08lx\n",
-			sizeof (gd_t), addr_sp);
+	//addr_sp -= sizeof (gd_t);
+	//id = (gd_t *) addr_sp;
+	//debug("Reserving %zu Bytes for Global Data at: %08lx\n",
+	//		sizeof (gd_t), addr_sp);
 
 	/* setup stackpointer for exeptions */
-	gd->irq_sp = addr_sp;
+	//gd->irq_sp = addr_sp;
 #ifdef CONFIG_USE_IRQ
 	addr_sp -= (CONFIG_STACKSIZE_IRQ+CONFIG_STACKSIZE_FIQ);
 	debug("Reserving %zu Bytes for IRQ stack at: %08lx\n",
 		CONFIG_STACKSIZE_IRQ+CONFIG_STACKSIZE_FIQ, addr_sp);
 #endif
 	/* leave 3 words for abort-stack    */
-	addr_sp -= 12;
+	//addr_sp -= 12;
 
 	/* 8-byte alignment for ABI compliance */
-	addr_sp &= ~0x07;
+	//addr_sp &= ~0x07;
 
-	debug("New Stack Pointer is: %08lx\n", addr_sp);
+	//debug("New Stack Pointer is: %08lx\n", addr_sp);
 
 	gd->bd->bi_baudrate = gd->baudrate;
 	/* Ram ist board specific, so move it to board code ... */
 	dram_init_banksize();
-	display_dram_config();	/* and display it */
+	//display_dram_config();	/* and display it */
 
-	gd->relocaddr = addr;
-	gd->start_addr_sp = addr_sp;
-	gd->reloc_off = addr - _TEXT_BASE;
-	debug("relocation Offset is: %08lx\n", gd->reloc_off);
-	memcpy(id, (void *)gd, sizeof(gd_t));
+	//gd->relocaddr = addr;
+	//gd->start_addr_sp = addr_sp;
+	//gd->reloc_off = addr - _TEXT_BASE;
+	//debug("relocation Offset is: %08lx\n", gd->reloc_off);
+	//memcpy(id, (void *)gd, sizeof(gd_t));
 
-	relocate_code(addr_sp, id, addr);
+	debug("hello......");
+	//led_on_3();
+	//led_on_4();
+	rGPBDAT &= ~(1<<6);
+	rGPBDAT &= ~(1<<7);
+	rGPBDAT &= ~(1<<8);
+	
+	while(1);
+	//relocate_code(addr_sp, id, addr);
+	relocate_code(CONFIG_SYS_INIT_SP_ADDR, gd, 0x33f00000);
 
 	/* NOTREACHED - relocate_code() does not return */
 }

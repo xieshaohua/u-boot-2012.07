@@ -25,7 +25,7 @@ AFLAGS := $(CPPFLAGS)
 LDSCRIPT= spl.lds
 LDFLAGS := -T $(LDSCRIPT) $(LDFLAGS) -Bstatic -gc-sections
 
-SOBJS	= init.o lowlevel_init.o
+SOBJS	= init.o
 COBJS	= spl_boot.o
 
 OBJS	:= $(SOBJS) $(COBJS)

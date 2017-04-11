@@ -12,7 +12,7 @@ include $(TOPDIR)/config.mk
 
 #########################################################################
 # U-Boot objects....order is important (i.e. start must be first)
-OBJS  = $(CPUDIR)/start.o
+OBJS  = $(CPUDIR)/start.o $(CPUDIR)/lowlevel_init.o $(CPUDIR)/nand_boot.o
 
 LIBS  = lib/libgeneric.o
 LIBS += lib/lzma/liblzma.o
