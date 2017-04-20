@@ -52,8 +52,8 @@
 
 #define BWSCON			0x48000000
 
-#define GPFCON			0x56000050
-#define GPFDAT			0x56000054
+#define GPBCON			0x56000010
+#define GPBDAT			0x56000014
 
 
 /* Fout = 400MHz, Fin = 12MHz Uclk = 96MHz */
@@ -205,7 +205,7 @@ lowlevel_init:
 	ldr	r0, =GPBCON
 	ldr	r1, =(1<<(5*2))|(1<<(6*2))|(1<<(7*2))|(1<<(8*2))
 	str	r1, [r0]
-	ldr	r0, =GPFDAT
+	ldr	r0, =GPBDAT
 	ldr	r1, =(1<<5)|(1<<6)|(1<<7)|(1<<8)
 	str	r1, [r0]
 
@@ -215,6 +215,7 @@ lowlevel_init:
 	ldr     r0, =SMRDATA
 	ldr	r1, _TEXT_BASE
 	sub	r0, r0, r1
+	adr	r1, _start
 	add	r0, r0, r1
 	ldr	r1, =BWSCON	/* Bus Width Status Controller */
 	add     r2, r0, #13*4
