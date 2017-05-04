@@ -298,6 +298,7 @@ int	abortboot(int bootdelay);
 extern char console_buffer[];
 
 /* arch/$(ARCH)/lib/board.c */
+extern void	copy_to_sdram(void);
 void	board_init_f  (ulong) __attribute__ ((noreturn));
 void	board_init_r  (gd_t *, ulong) __attribute__ ((noreturn));
 int	checkboard    (void);

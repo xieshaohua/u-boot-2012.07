@@ -25,7 +25,7 @@ include $(TOPDIR)/config.mk
 
 LIB	= $(obj)lib$(CPU).o
 
-START	= start.o
+START	= start.o nand_spl.o
 
 COBJS-y	+= cpu.o
 COBJS-$(CONFIG_USE_IRQ)	+= interrupts.o

@@ -35,6 +35,7 @@ SECTIONS
 	{
 		__image_copy_start = .;
 		CPUDIR/start.o (.text)
+		CPUDIR/nand_spl.o (.text)
 		*(.text)
 	}
 

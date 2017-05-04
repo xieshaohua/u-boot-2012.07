@@ -41,19 +41,19 @@ int board_early_init_f(void)
 	struct s3c24x0_gpio * const gpio = s3c24x0_get_base_gpio();
 
 	/*
-	 * set up the I/O ports (JZ2440)
+	 * set up the I/O ports (mini2440)
 	 */
 	writel(0x007FFFFF, &gpio->gpacon);
-	writel(0x00000000, &gpio->gpbcon);
-	writel(0x00000000, &gpio->gpbup);
+	//writel(0x00000000, &gpio->gpbcon);
+	//writel(0x00000000, &gpio->gpbup);
 	writel(0x00000000, &gpio->gpccon);
 	writel(0x00000000, &gpio->gpcup);
 	writel(0x00000000, &gpio->gpdcon);
 	writel(0x00000000, &gpio->gpdup);
 	writel(0x00000000, &gpio->gpecon);
 	writel(0x00000000, &gpio->gpeup);
-	//writel(0x00000000, &gpio->gpfcon);
-	//writel(0x00000000, &gpio->gpfup);
+	writel(0x00000000, &gpio->gpfcon);
+	writel(0x00000000, &gpio->gpfup);
 	writel(0x00000000, &gpio->gpgcon);
 	writel(0x00000000, &gpio->gpgup);
 	writel(gpio->gpgdat & ((~(1<<4)) | (1<<4)), &gpio->gpgdat);
