@@ -9,7 +9,6 @@ SECTIONS
  {
   __image_copy_start = .;
   arch/arm/cpu/arm920t/start.o (.text)
-  arch/arm/cpu/arm920t/lowlevel_init.o (.text)
   arch/arm/cpu/arm920t/nand_boot.o (.text)
   *(.text)
  }

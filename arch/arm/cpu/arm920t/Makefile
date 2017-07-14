@@ -3,7 +3,7 @@ include $(TOPDIR)/config.mk
 
 LIB	= lib$(CPU).o
 
-START	= start.o lowlevel_init.o nand_boot.o
+START	= start.o nand_boot.o
 
 COBJS-y	+= cpu.o
 COBJS-$(CONFIG_USE_IRQ)	+= interrupts.o

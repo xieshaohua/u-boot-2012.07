@@ -214,9 +214,6 @@ void board_init_f(ulong bootflag)
 	init_fnc_t **init_fnc_ptr;
 	gd_t *id;
 	ulong addr, addr_sp;
-#ifdef CONFIG_PRAM
-	ulong reg;
-#endif
 
 	bootstage_mark_name(BOOTSTAGE_ID_START_UBOOT_F, "board_init_f");
 
